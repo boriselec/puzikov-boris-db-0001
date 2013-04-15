@@ -5,6 +5,7 @@ public class GCTest {
 	public static void main(String[] args) {
 		int numberOfIterations = 1000000;
 		
+		//gc don't work because of array
 		Foo[] array = new Foo[numberOfIterations];
 		
 		for (int i = 0; i < numberOfIterations; i++) {
