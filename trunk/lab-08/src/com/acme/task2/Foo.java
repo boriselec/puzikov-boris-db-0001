@@ -6,7 +6,7 @@ public class Foo {
 		super();
 		this.iteration = iteration;
 	}
-	int iteration;
+	private int iteration;
 	@Override
 	protected void finalize() throws Throwable {
 		System.out.println("Finalize called: " + this.iteration);
