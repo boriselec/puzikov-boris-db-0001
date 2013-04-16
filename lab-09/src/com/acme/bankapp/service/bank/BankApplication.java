@@ -1,7 +1,6 @@
 package com.acme.bankapp.service.bank;
 
 import com.acme.bankapp.domain.bank.*;
-import com.acme.bankapp.service.bank.*;
 
 public class BankApplication {
 	public static void main(String[] args) {
@@ -17,6 +16,8 @@ public class BankApplication {
 		
 		service.modifyBank(bank);
 		service.printBalance(bank);
+		
+		service.printMaximumAmountToWithdraw(bank);
 		
 	}
 
