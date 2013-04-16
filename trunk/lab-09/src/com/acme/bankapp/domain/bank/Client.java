@@ -1,4 +1,5 @@
-package com.acme.bank;
+package com.acme.bankapp.domain.bank;
+
 
 public class Client {
 	
@@ -22,15 +23,15 @@ public class Client {
 		this.name = name;
 	}
 
-	public Client(String name, Gender gender, Account accounts) {
+	public Client(String name, Gender gender, AbstractAccount abstractAccount) {
 		this.name = name;
 		this.gender = gender;
-		this.accounts = accounts;
+		this.accounts = abstractAccount;
 	}
 
-	private Account accounts;
+	private AbstractAccount accounts;
 
-	public Account getAccounts() {
+	public AbstractAccount getAccounts() {
 		return accounts;
 	}
 

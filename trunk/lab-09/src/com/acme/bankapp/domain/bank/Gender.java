@@ -1,4 +1,4 @@
-package com.acme.bank;
+package com.acme.bankapp.domain.bank;
 
 public enum Gender {
 	MALE,

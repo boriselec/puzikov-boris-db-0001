@@ -1,4 +1,4 @@
-package com.acme.bank;
+package com.acme.bankapp.domain.bank;
 
 
 public class Bank {
@@ -27,8 +27,24 @@ public class Bank {
 			clients[1].getAccounts().withdraw(1.0);
 	}
 	
-	public void printBalance() {
-		System.out.print(this.toString());
+	public void printMaximumAmountToWithdraw() {
+		String toPrint = "";
+		if (numOfClients == 0){
+			toPrint += "Bank is empty\n";
+		}
+		else {
+			toPrint += "Bank\n";
+			for (Client client : clients){
+				if (client == null)
+					continue;
+				else {
+					toPrint = toPrint + client.getSalutation() + ": " + 
+							client.getAccounts().maximumAmountToWithdraw() + '\n';
+				}
+			}
+		}
+			toPrint += "\n";
+			System.out.println(toPrint);
 	}
 	
 	public String toString() {
