@@ -6,6 +6,10 @@ public class Bank {
 	private Client[] clients = new Client[MAX_CLIENTS];
 	private int numOfClients = 0;
 	
+	public int getNumOfClients() {
+		return numOfClients;
+	}
+
 	public Client[] getClients() {
 		return clients;
 	}
@@ -27,46 +31,7 @@ public class Bank {
 			clients[1].getAccounts().withdraw(1.0);
 	}
 	
-	public void printMaximumAmountToWithdraw() {
-		String toPrint = "";
-		if (numOfClients == 0){
-			toPrint += "Bank is empty\n";
-		}
-		else {
-			toPrint += "Bank\n";
-			for (Client client : clients){
-				if (client == null)
-					continue;
-				else {
-					toPrint = toPrint + client.getSalutation() + ": " + 
-							client.getAccounts().maximumAmountToWithdraw() + '\n';
-				}
-			}
-		}
-			toPrint += "\n";
-			System.out.println(toPrint);
-	}
 	
-	public String toString() {
-		String toPrint = "";
-		if (numOfClients == 0){
-			toPrint += "Bank is empty\n";
-		}
-		else {
-			toPrint += "Bank\n";
-			for (Client client : clients){
-				if (client == null)
-					continue;
-				else {
-					toPrint = toPrint + client.getSalutation() + ": " + 
-							client.getAccounts().getBalance() + '\n';
-				}
-			}
-		}
-			toPrint += "\n";
-		return toPrint;
-		
-	}
 	
 
 }
