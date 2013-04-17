@@ -17,7 +17,10 @@ public class SavingAccount extends AbstractAccount{
 		}
 	}
 
-	public void deposit(double amount){
+	public void deposit(double amount) throws NegativeArgumentException{
+		if (amount < 0){
+			throw new NegativeArgumentException("Negative amount");
+		}
 		this.balance += amount;
 	}
 

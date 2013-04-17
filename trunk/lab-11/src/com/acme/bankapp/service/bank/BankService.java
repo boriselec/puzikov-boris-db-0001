@@ -3,6 +3,7 @@ package com.acme.bankapp.service.bank;
 import com.acme.bankapp.domain.bank.Bank;
 import com.acme.bankapp.domain.bank.Client;
 import com.acme.bankapp.domain.bank.ClientExistsException;
+import com.acme.bankapp.domain.bank.NegativeArgumentException;
 import com.acme.bankapp.domain.bank.NotEnoughFundsException;
 import com.acme.bankapp.domain.bank.OverDraftLimitExceededException;
 
@@ -31,14 +32,14 @@ public class BankService {
 			toPrint += "\n";
 		System.out.println(toPrint);
 	}
-	public void modifyBank(Bank bank) throws NotEnoughFundsException{
+	public void modifyBank(Bank bank) throws NotEnoughFundsException, NegativeArgumentException{
 		Client[] clients = bank.getClients();
 		if (clients[0] != null){
 			clients[0].getAccounts().deposit(3.0);
 		}
 		if (clients[1] != null){
 			try{
-				clients[1].getAccounts().withdraw(3.0);
+				clients[1].getAccounts().withdraw(9.0);
 			}
 			catch(OverDraftLimitExceededException e){
 				throw new OverDraftLimitExceededException(clients[1], e);
