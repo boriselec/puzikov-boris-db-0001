@@ -39,5 +39,10 @@ public class Client {
 		String result = this.getGender().toString() + this.getName();
 		return result;
 	}
+	
+	public String toString(){
+		return this.getName();
+		
+	}
 
 }
