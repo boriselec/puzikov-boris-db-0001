@@ -10,6 +10,7 @@ public class Calculator {
 	/**
 	 * @param args Expression to evaluate.
 	 */
+	
 	public static void main(String[] args) {
 		
         boolean isLessThree = (args.length < 3);
@@ -54,8 +55,5 @@ public class Calculator {
 
 		}
         System.out.println(result);
-
-
-
     }
 }
