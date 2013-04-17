@@ -24,8 +24,7 @@ public class BankService {
 				if (client == null)
 					continue;
 				else {
-					toPrint = toPrint + client.getSalutation() + ": " + 
-							client.getAccounts().getBalance() + '\n';
+					toPrint = client.toString();
 				}
 			}
 		}
@@ -39,7 +38,7 @@ public class BankService {
 		}
 		if (clients[1] != null){
 			try{
-				clients[1].getAccounts().withdraw(9.0);
+				clients[1].getAccounts().withdraw(2.0);
 			}
 			catch(OverDraftLimitExceededException e){
 				throw new OverDraftLimitExceededException(clients[1], e);

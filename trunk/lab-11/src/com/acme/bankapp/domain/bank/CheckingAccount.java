@@ -51,5 +51,10 @@ public class CheckingAccount extends AbstractAccount{
 		
 	}
 	
+	@Override
+		public String toString() {
+			return new String(super.toString() + "overdraft: " + this.overdraft + "\n");
+		}
+	
 
 }
