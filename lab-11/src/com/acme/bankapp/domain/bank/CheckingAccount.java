@@ -12,19 +12,19 @@ public class CheckingAccount extends AbstractAccount{
 		return balance;
 	}
 
-	public CheckingAccount(double b, double overdraft)  {
+	public CheckingAccount(double b, double overdraft) throws NegativeArgumentException  {
 		super(b);
 		if (overdraft >= 0){
 			this.overdraft = overdraft;
 		}
 		else{
-			throw new IllegalArgumentException("Negative overdraw");
+			throw new NegativeArgumentException("Negative overdraw");
 		}
 		if (b >= 0) {
 			this.balance = b;
 		}
 		else {
-			throw new IllegalArgumentException("Negative balance");
+			throw new NegativeArgumentException("Negative balance");
 		}
 	}
 
@@ -32,7 +32,10 @@ public class CheckingAccount extends AbstractAccount{
 		this.balance += amount;
 	}
 
-	public void withdraw(double amount) throws NotEnoughFundsException{
+	public void withdraw(double amount) throws NotEnoughFundsException, NegativeArgumentException{
+		if (amount < 0){
+			throw new NegativeArgumentException("Negative amount");
+		}
 		if (this.balance + this.overdraft>= amount){
 			this.balance -= amount;
 		}
