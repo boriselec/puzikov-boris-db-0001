@@ -24,12 +24,6 @@ public class Bank {
 		
 	}
 	
-	public void modifyBank(){
-		if (clients[0] != null)
-			clients[0].getAccounts().deposit(1.0);
-		if (clients[1] != null)
-			clients[1].getAccounts().withdraw(1.0);
-	}
 	
 	
 	
