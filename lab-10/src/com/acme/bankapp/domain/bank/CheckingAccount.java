@@ -34,6 +34,7 @@ public class CheckingAccount extends AbstractAccount{
 		else {
 			//throw
 		}
+		assert (this.balance + this.overdraft >= 0);
 	}
 
 	@Override

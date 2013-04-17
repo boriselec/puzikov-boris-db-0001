@@ -23,6 +23,7 @@ public class SavingAccount extends AbstractAccount{
 		else {
 			//throw
 		}
+		assert(this.balance >= 0);
 
 	}
 		@Override
