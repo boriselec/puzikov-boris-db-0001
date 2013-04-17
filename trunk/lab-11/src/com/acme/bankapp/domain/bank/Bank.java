@@ -23,9 +23,9 @@ public class Bank {
 		return clients;
 	}
 	
-	public void addClient(Client client){
+	public void addClient(Client client) throws ClientExistsException{
 		if (numOfClients >= MAX_CLIENTS){
-			//throw
+			throw new ClientExistsException("Max num of clients is " + MAX_CLIENTS);
 		}
 		else {
 			clients[numOfClients++] = client;

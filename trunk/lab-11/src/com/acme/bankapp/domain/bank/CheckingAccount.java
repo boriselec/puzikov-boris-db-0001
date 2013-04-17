@@ -12,27 +12,33 @@ public class CheckingAccount extends AbstractAccount{
 		return balance;
 	}
 
-	public CheckingAccount(double b, double overdraft) {
+	public CheckingAccount(double b, double overdraft)  {
 		super(b);
-		if (overdraft <= 0){
-			//throw
-		}
-		else{
+		if (overdraft >= 0){
 			this.overdraft = overdraft;
 		}
-		this.balance = b;
+		else{
+			throw new IllegalArgumentException("Negative overdraw");
+		}
+		if (b >= 0) {
+			this.balance = b;
+		}
+		else {
+			throw new IllegalArgumentException("Negative balance");
+		}
 	}
 
 	public void deposit(double amount){
 		this.balance += amount;
 	}
 
-	public void withdraw(double amount){
-		if (this.balance >= amount){
+	public void withdraw(double amount) throws NotEnoughFundsException{
+		if (this.balance + this.overdraft>= amount){
 			this.balance -= amount;
 		}
 		else {
-			//throw
+			throw new OverDraftLimitExceededException("Not enough money to withdraw", amount,
+					this.balance + this.overdraft);
 		}
 	}
 

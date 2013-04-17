@@ -15,7 +15,7 @@ public abstract class AbstractAccount implements Account {
 
 	public abstract void deposit(final double amount);
 
-	public abstract void withdraw(final double amount);
+	public abstract void withdraw(final double amount) throws NotEnoughFundsException;
 
 	public double maximumAmountToWithdraw() {
 		// TODO Auto-generated method stub
