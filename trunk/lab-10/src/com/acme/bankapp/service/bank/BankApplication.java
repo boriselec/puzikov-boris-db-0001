@@ -1,5 +1,4 @@
 package com.acme.bankapp.service.bank;
-
 import com.acme.bankapp.domain.bank.*;
 
 public class BankApplication {
