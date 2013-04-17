@@ -7,5 +7,7 @@ public interface Account {
 	void withdraw(double amount) throws NotEnoughFundsException, NegativeArgumentException;
 	
 	double maximumAmountToWithdraw();
+	
+	long decimalValue();
 
 }
