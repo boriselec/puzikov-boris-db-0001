@@ -81,7 +81,7 @@ public class BankService {
 			System.out.println(toPrint);
 	}
 	
-	public void loadFeed(Bank bank, LineNumberReader lnr) throws IOException, ClientExistsException, NegativeArgumentException{
+	public void loadFeed(Bank bank, LineNumberReader lnr) throws IOException, ClientExistsException, NegativeArgumentException, ParseFeedException{
 		
 		String line;
 		do {
@@ -94,8 +94,8 @@ public class BankService {
 			String name = "";
 			String gender = "";
 			String accountType = "";
-			double balance = 0;
-			double overdraft = 0;
+			double balance = -1;
+			double overdraft = -1;
 			while (scanner.hasNext()){
 				String current = scanner.next();
 				char first = current.charAt(0);
@@ -122,14 +122,16 @@ public class BankService {
 					break;
 
 				default:
-					//TODO: throw
-					break;
+					throw new ParseFeedException();
 				}
 			}
 			if ("c".equals(accountType))
 				bank.addClient(new Client(name, Gender.getByChar(gender), new CheckingAccount(balance, overdraft)));
 			else if ("s".equals(accountType)){
 				bank.addClient(new Client(name, Gender.getByChar(gender), new SavingAccount(balance)));
+			}
+			else {
+					throw new ParseFeedException();
 			}
 		} while (line != null);
 	}
