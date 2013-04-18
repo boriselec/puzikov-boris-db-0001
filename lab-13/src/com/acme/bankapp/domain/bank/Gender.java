@@ -12,4 +12,13 @@ public enum Gender {
 	public String toString() {
 		return salut;
 	}
+	public static Gender getByChar(String ch) {
+		if ("m".equals(ch))
+			return MALE;
+		else if ("f".equals(ch))
+			return FEMALE;
+		else 
+			throw new IllegalArgumentException();
+		
+	}
 }
