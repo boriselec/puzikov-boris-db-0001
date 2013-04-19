@@ -1,9 +1,17 @@
 package com.acme.task4;
 
 public class Task4Arrays {
+	private static final String COUNT_MESSAGE = 
+			"Number of %d: %d";
+	
 	public static void main(String[] args) {
-
+		
 		int array[] = {7, 3, 9, 3, 3, 7, 9, 3, 7, 7};
+		printCount(array);
+		
+	}
+	public static void printCount(int[] array) {
+
 	
 		int numOf3 = 0;
 		int numOf7 = 0;
@@ -24,8 +32,9 @@ public class Task4Arrays {
 				break;
 			}
 		}
-		System.out.println("Number of 3: " + numOf3);
-		System.out.println("Number of 7: " + numOf7);
-		System.out.println("Number of 9: " + numOf9);
+		
+		System.out.println(String.format(COUNT_MESSAGE, 3, numOf3));
+		System.out.println(String.format(COUNT_MESSAGE, 7, numOf7));
+		System.out.println(String.format(COUNT_MESSAGE, 9, numOf9));
 	}
 }
