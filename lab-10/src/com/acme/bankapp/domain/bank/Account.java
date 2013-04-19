@@ -8,5 +8,5 @@ public interface Account {
 	
 	double maximumAmountToWithdraw();
 
-	// TODO: add another methods like getBalance();
+	double getBalance();
 }

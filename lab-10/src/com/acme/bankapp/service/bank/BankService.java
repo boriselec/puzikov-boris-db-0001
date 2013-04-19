@@ -4,6 +4,11 @@ import com.acme.bankapp.domain.bank.Bank;
 import com.acme.bankapp.domain.bank.Client;
 
 public class BankService {
+	
+	private final static String EMPTY_BANK = 
+			"Bank is empty\n";
+	private final static String BANK_HEADER = 
+			"Bank\n************\n";
 
 	public void addClient(Bank bank, Client client){
 		bank.addClient(client);
@@ -12,10 +17,10 @@ public class BankService {
 	public void printBalance(Bank bank){
 		String toPrint = "";
 		if (bank.getNumOfClients() == 0){
-			toPrint += "Bank is empty\n";
+			toPrint += EMPTY_BANK;
 		}
 		else {
-			toPrint += "Bank\n";
+			toPrint += BANK_HEADER;
 			for (Client client : bank.getClients()){
 				if (client == null)
 					continue;
@@ -41,10 +46,10 @@ public class BankService {
 	public void printMaximumAmountToWithdraw(Bank bank){
 		String toPrint = "";
 		if (bank.getNumOfClients() == 0){
-			toPrint += "Bank is empty\n";
+			toPrint += EMPTY_BANK;
 		}
 		else {
-			toPrint += "Bank\n";
+			toPrint += BANK_HEADER;
 			for (Client client : bank.getClients()){
 				if (client == null)
 					continue;
