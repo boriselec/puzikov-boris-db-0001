@@ -2,9 +2,6 @@ package com.acme.task5;
 
 public class TextModifier {
 	
-	private static final String ERR_ARGS_NUMBER = 
-			"Wrong number of arguments. Must be at least 1.";
-	
 	public static void main(String[] args) {
 		
 		testModifier(args);
@@ -12,8 +9,9 @@ public class TextModifier {
 	}
 	
 	public static void testModifier(String[] args) {
+		
 		if (args.length == 0){
-			throw new IllegalArgumentException(ERR_ARGS_NUMBER);
+			return;
 		}
 		modify(args[0]);
 		
