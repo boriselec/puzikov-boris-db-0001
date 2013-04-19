@@ -1,8 +1,19 @@
 package com.acme.task3;
 
 public class Task3Arrays {
+
+	private static final String ARRAY_MESSAGE = 
+			"%s is multiple of 3";
+	
 	public static void main(String[] args) {
 		int[] array = new int[50];
+		
+		testArrays(array);
+		
+		System.out.println(avg(array));
+	}
+	
+	public static void  testArrays(int[] array) {
 		
 		for (int i = 0; i < array.length; i++) {
 			array[i] = i + 1; 
@@ -10,14 +21,14 @@ public class Task3Arrays {
 		
 		for (int i = 0; i < array.length; i++) {
 			if (array[i] % 3 == 0){
-				System.out.println("Число " + array[i] + " кратно трем");
+				String message = String.format(ARRAY_MESSAGE, array[i]);
+				System.out.println(message);
 			}
 			else{
 				System.out.println(array[i]);
 			}
 		}
 
-		System.out.println(avg(array));
 		
 	}
 	
