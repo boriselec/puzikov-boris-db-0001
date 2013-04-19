@@ -25,6 +25,7 @@ public class CheckingAccount extends AbstractAccount{
 			this.balance = 0.0;
 			this.overdraft = this.overdraft - (amount - this.balance);
 		}
+		assert (this.balance + this.overdraft >= 0);
 	}
 
 	@Override
