@@ -1,12 +1,20 @@
 package com.acme.task6;
 
-public class TextFormatter {
+import javax.naming.spi.DirStateFactory.Result;
 
+public class TextFormatter {
+	
 	public static void main(String[] args) {
+		String result = deleteComments(args);
+		System.out.println(result);
+	}
+	
+	public static String deleteComments(String[] args) {
+		
 		if (args.length == 0){
-			System.out.println("Wrong args");
-			return;
+			return "";
 		}
+		
 		String str = args[0];
 		StringBuffer result = new StringBuffer();
 		
@@ -49,6 +57,6 @@ public class TextFormatter {
 			else
 				result.append(current);
 		}
-		System.out.println(result);
+		return result.toString();
 	}
 }
