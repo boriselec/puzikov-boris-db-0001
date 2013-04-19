@@ -7,16 +7,37 @@ package com.acme.task1;
  *
  */
 public class Calculator {
+	
+	private static final char OP_PLUS = '+';
+	private static final char OP_MINUS = '-';
+	private static final char OP_MULTIPLY = '*';
+	private static final char OP_DIVIDE = '\\';
+	
+	private static final String ERR_ARGS_NUMBER = 
+			"Wrong number of arguments. Must be at least 3.";
+	private static final String ERR_NOT_NUMBER = 
+			"Argument is not a number.";
+	private static final String ERR_NOT_OPERATOR = 
+			"Argument is not an operator. Valid operators: - + * \\";
+	
 	/**
 	 * @param args Expression to evaluate.
 	 */
-	
 	public static void main(String[] args) {
+		try {
+			double result = calculate(args);
+			System.out.println(result);
+
+		} catch (IllegalArgumentException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public static double calculate(String[] args) {
 		
         boolean isLessThree = (args.length < 3);
         if (isLessThree) {
-            System.out.println("Wrong number of arguments");
-            return;
+        	throw new IllegalArgumentException(ERR_ARGS_NUMBER);
         }
         
         double operand1;
@@ -26,34 +47,32 @@ public class Calculator {
             operand2 = Double.parseDouble(args[2]);
         }
         catch(Exception e){
-            System.out.println("Wrong numbers");
-            return;
+        	throw new IllegalArgumentException(ERR_NOT_NUMBER);
         };
         
         char operator = args[1].charAt(0);
-        boolean isOperator = ((operator == '+') || (operator == '-') || 
-                              (operator == '*') || (operator == '\\'));
+        boolean isOperator = ((operator == OP_PLUS) || (operator == OP_MINUS) || 
+                              (operator == OP_MULTIPLY) || (operator == OP_DIVIDE));
         if (!isOperator){
-            System.out.println("Wrong operator");
-            return;
+        	throw new IllegalArgumentException(ERR_NOT_OPERATOR);
         }
        
         double result = 0;
         switch (operator) {
-		case '+':
+		case OP_PLUS:
 			result = operand1 + operand2;
 			break;
-		case '-':
+		case OP_MINUS:
 			result = operand1 - operand2;
 			break;
-		case '*':
+		case OP_MULTIPLY:
 			result = operand1 * operand2;
 			break;
-		case '\\':
+		case OP_DIVIDE:
 			result = operand1 / operand2;
 			break;
-
 		}
-        System.out.println(result);
+        
+        return result;
     }
 }
