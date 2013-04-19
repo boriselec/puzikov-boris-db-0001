@@ -1,38 +1,29 @@
 package com.acme.bankapp.domain.bank;
 
 public class CheckingAccount extends AbstractAccount{
-//	private double balance;
 	private double overdraft;
 
 	public double getOverdraft() {
 		return overdraft;
 	}
 
-	public double getBalance() {
-		return balance;
-	}
 
-	public CheckingAccount(double b, double overdraft) {
-		super(b);
-		if (overdraft <= 0){
-			//throw
-		}
-		else{
+	public CheckingAccount(int id, double b, double overdraft) {
+		super(id, b);
+		if (overdraft > 0){
 			this.overdraft = overdraft;
 		}
 		this.balance = b;
 	}
 
-	public void deposit(double amount){
-		this.balance += amount;
-	}
 
 	public void withdraw(double amount){
 		if (this.balance >= amount){
 			this.balance -= amount;
 		}
-		else {
-			//throw
+		else if (this.balance + this.overdraft >= amount){
+			this.balance = 0.0;
+			this.overdraft = this.overdraft - (amount - this.balance);
 		}
 	}
 

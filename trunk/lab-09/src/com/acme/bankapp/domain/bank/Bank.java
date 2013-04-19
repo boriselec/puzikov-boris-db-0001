@@ -15,10 +15,7 @@ public class Bank {
 	}
 	
 	public void addClient(Client client){
-		if (numOfClients >= MAX_CLIENTS){
-			//throw
-		}
-		else {
+		if (numOfClients < MAX_CLIENTS){
 			clients[numOfClients++] = client;
 		}
 		

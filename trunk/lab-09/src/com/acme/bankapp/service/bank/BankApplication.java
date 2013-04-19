@@ -8,10 +8,10 @@ public class BankApplication {
 		Bank bank = new Bank();
 		service.printBalance(bank);
 		
-		service.addClient(bank, new Client("Bob", Gender.MALE, new CheckingAccount(2.0, 3.0)));
+		service.addClient(bank, new Client("Bob", Gender.MALE, new CheckingAccount(1, 2.0, 3.0)));
 		service.printBalance(bank);
 		
-		service.addClient(bank, new Client("Alice", Gender.FEMALE, new SavingAccount(4.0)));
+		service.addClient(bank, new Client("Alice", Gender.FEMALE, new SavingAccount(2, 4.0)));
 		service.printBalance(bank);
 		
 		service.modifyBank(bank);
