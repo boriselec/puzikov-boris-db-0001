@@ -1,5 +1,11 @@
 package com.acme.bankapp.service.bank;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import com.acme.bankapp.domain.bank.Bank;
 import com.acme.bankapp.domain.bank.Client;
 import com.acme.bankapp.domain.bank.ClientExistsException;
@@ -64,13 +70,36 @@ public class BankService {
 		}
 			System.out.println(toPrint);
 	}
-	
-	public void saveBank(Bank bank){
-		
+
+	public void saveBank(Bank bank) throws IOException {
+		saveBank(bank, "bank.ser");
 	}
-	
-	public Bank readBank(String path) {
+
+	public void saveBank(Bank bank, String path) throws IOException {
+		FileOutputStream fos = new FileOutputStream("bank.ser");
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(bank);
+		oos.close();
+		fos.close();
+
+	}
+
+	public Bank readBank() throws ClassNotFoundException, IOException {
+		return readBank("bank.ser");
+	}
+
+	public Bank readBank(String path) throws IOException,
+			ClassNotFoundException {
+		FileInputStream fis = new FileInputStream(path);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		Bank sb = (Bank) ois.readObject();
+		ois.close();
+		fis.close();
+		return sb;
+
+	}
+	public void reset(Bank bank) {
+		bank.reset();
 		
-		return null;
 	}
 }

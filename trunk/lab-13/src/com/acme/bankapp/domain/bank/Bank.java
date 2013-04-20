@@ -1,9 +1,11 @@
 package com.acme.bankapp.domain.bank;
 
+import java.io.Serializable;
+
 import com.acme.bankapp.service.bank.ClientRegistrationListener;
 
 
-public class Bank {
+public class Bank implements Serializable{
 	public final int MAX_CLIENTS = 10;
 	private Client[] clients = new Client[MAX_CLIENTS];
 	public final int MAX_LISTENERS = 100;
@@ -47,6 +49,18 @@ public class Bank {
 		if (numOfListeners < MAX_LISTENERS) {
 			listeners[numOfListeners++] = listener;
 		}
+	}
+    
+    public void reset(){
+    	clients = null;
+    	listeners = null;
+    	numOfClients = 0;
+    	numOfListeners = 0;
+    }
+
+
+	public int getID() {
+		return getNumOfClients();
 	}
 
 }

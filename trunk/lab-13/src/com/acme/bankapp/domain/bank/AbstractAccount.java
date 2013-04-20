@@ -1,6 +1,8 @@
 package com.acme.bankapp.domain.bank;
 
-public abstract class AbstractAccount implements Account {
+import java.io.Serializable;
+
+public abstract class AbstractAccount implements Account, Serializable {
 
 	protected int id;
 	protected double balance;
