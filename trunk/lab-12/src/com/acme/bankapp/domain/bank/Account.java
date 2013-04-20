@@ -9,4 +9,6 @@ public interface Account {
 	double maximumAmountToWithdraw();
 
 	double getBalance();
+	
+	long decimalValue();
 }

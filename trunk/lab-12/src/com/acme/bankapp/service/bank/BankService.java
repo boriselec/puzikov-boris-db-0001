@@ -28,8 +28,7 @@ public class BankService {
 				if (client == null)
 					continue;
 				else {
-					toPrint = toPrint + client.getSalutation() + ": " + 
-							client.getAccounts().getBalance() + '\n';
+					toPrint += client.toString();
 				}
 			}
 		}
@@ -57,12 +56,12 @@ public class BankService {
 				if (client == null)
 					continue;
 				else {
-					toPrint = toPrint + client.getSalutation() + ": " + 
+					toPrint += client.toString();
+					toPrint += "\tMaximum amount to withdraw: " + 
 							client.getAccounts().maximumAmountToWithdraw() + '\n';
 				}
 			}
 		}
-			toPrint += "\n";
 			System.out.println(toPrint);
 	}
 }
