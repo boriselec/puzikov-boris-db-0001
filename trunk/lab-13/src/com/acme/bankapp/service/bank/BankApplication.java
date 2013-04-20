@@ -2,6 +2,10 @@ package com.acme.bankapp.service.bank;
 
 import com.acme.bankapp.domain.bank.*;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.Date;
 
 public class BankApplication {
@@ -33,6 +37,22 @@ public class BankApplication {
 				}
 			});
 
+			for (int i = 0; i < args.length - 1; i++){
+				if ("-loadfeed".equals(args[i])) {
+					FileReader fReader = new FileReader(args[i + 1]);
+					LineNumberReader lnr = new LineNumberReader(fReader);
+					BankDataLoaderService feedLoaderService = new BankDataLoaderService();
+					feedLoaderService.loadFeed(bank, lnr);
+					break;
+
+				}
+				if ("-loadbank".equals(args[i])) {
+					bank = service.readBank(args[i + 1]);
+					break;
+				}
+				
+			}
+
 			service.printBalance(bank);
 
 			service.addClient(bank, new Client("Bob", Gender.MALE,
@@ -50,6 +70,10 @@ public class BankApplication {
 			
 		} catch (BankException ex) {
 			System.out.println(ex.getMessage());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}
