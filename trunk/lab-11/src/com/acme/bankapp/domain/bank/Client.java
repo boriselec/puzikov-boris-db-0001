@@ -40,22 +40,9 @@ public class Client {
 		return result;
 	}
 	
-	public String toString(){
-		return new String(this.getName() + "\n" + this.getAccounts());
-		
-	}
 	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof Client == false){
-			return false;
-		}
-		return (this.name == ((Client)obj).name);
-		
-	}
-	@Override
-	public int hashCode() {
-		// TODO Auto-generated method stub
-		return super.hashCode();
+	public String toString() {
+		return getSalutation();
 	}
 
 }
