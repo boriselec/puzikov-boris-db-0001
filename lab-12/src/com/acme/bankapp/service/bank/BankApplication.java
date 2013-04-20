@@ -12,7 +12,7 @@ public class BankApplication {
 
 				@Override
 				public void onClientAdded(Client client) {
-					System.out.println(client);
+					System.out.println(client.getSalutation());
 
 				}
 			}, new ClientRegistrationListener() {
@@ -20,14 +20,14 @@ public class BankApplication {
 				@Override
 				public void onClientAdded(Client client) {
 					System.out.format(
-							"Notification for client %s to be sent\n", client);
+							"Notification for client %s to be sent\n", client.getSalutation());
 
 				}
 			}, new ClientRegistrationListener() {
 
 				@Override
 				public void onClientAdded(Client client) {
-					System.out.format("Client: %s, Date: %s\n", client,
+					System.out.format("Client: %s, Date: %s\n", client.getSalutation(),
 							new Date());
 
 				}

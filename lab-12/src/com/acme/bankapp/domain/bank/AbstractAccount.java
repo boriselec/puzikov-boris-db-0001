@@ -27,5 +27,21 @@ public abstract class AbstractAccount implements Account {
 
 	public abstract double maximumAmountToWithdraw();
 	
+	public long decimalValue(){
+		return Math.round(this.getBalance());
+	}
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer();
+		
+		String idMessage= String.format("\tId: %d%n", this.id);
+		result.append(idMessage);
+		
+		String balanceMessage= String.format("\tBalance: %f%n", this.balance);
+		result.append(balanceMessage);
+		
+		return result.toString();
+	}
+	
 
 }
