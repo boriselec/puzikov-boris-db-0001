@@ -5,21 +5,43 @@ public abstract class AbstractAccount implements Account {
 	protected int id;
 	protected double balance;
 
-	public AbstractAccount(final double amount) {
-		this.balance = amount;
+	public AbstractAccount(final int id, final double amount) throws NegativeArgumentException {
+		this.id = id;
+		if (amount >=0){
+			this.balance = amount;
+		}
+		else {
+			throw new NegativeArgumentException("Account initialize error: Balance is negative");
+		}
 	}
 
 	public double getBalance() {
 		return balance;
 	}
 
-	public abstract void deposit(final double amount) throws NegativeArgumentException;
-
-	public abstract void withdraw(final double amount) throws NotEnoughFundsException, NegativeArgumentException;
-
-	public double maximumAmountToWithdraw() {
-		// TODO Auto-generated method stub
-		return 0.0;
+	public void deposit(double amount){
+		this.balance += amount;
 	}
+
+	public abstract void withdraw(final double amount) throws NotEnoughFundsException;
+
+	public abstract double maximumAmountToWithdraw();
+	
+	public long decimalValue(){
+		return Math.round(this.getBalance());
+	}
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer();
+		
+		String idMessage= String.format("\tId: %d%n", this.id);
+		result.append(idMessage);
+		
+		String balanceMessage= String.format("\tBalance: %f%n", this.balance);
+		result.append(balanceMessage);
+		
+		return result.toString();
+	}
+	
 
 }
