@@ -1,7 +1,9 @@
 package com.acme.bankapp.domain.bank;
 
+import java.io.Serializable;
 
-public class Client {
+
+public class Client implements Serializable{
 	
 	@Override
 	public int hashCode() {

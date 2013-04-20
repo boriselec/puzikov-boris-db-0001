@@ -35,11 +35,11 @@ public class BankDataLoaderService {
 				
 				if ("c".equals(accountType)){
 					bank.addClient(new Client(name, Gender.convertChar(gender) , 
-							new CheckingAccount(10, balance, overdraw)));
+							new CheckingAccount(bank.getID(), balance, overdraw)));
 				}
-				else if ("s".equals(accountType)){
+				if ("s".equals(accountType)){
 					bank.addClient(new Client(name, Gender.convertChar(gender) , 
-							new SavingAccount(10, balance)));
+							new SavingAccount(bank.getID(), balance)));
 				}
 				
 				line = lnr.readLine();
