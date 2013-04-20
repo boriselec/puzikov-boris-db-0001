@@ -25,7 +25,7 @@ public class Bank {
 		return clients;
 	}
 	
-	public void addClient(Client client){
+	public void addClient(Client client) throws ClientExistsException{
 		if (numOfClients < MAX_CLIENTS){
 			clients[numOfClients++] = client;
 			
@@ -35,6 +35,10 @@ public class Bank {
                             listener.onClientAdded(client);
             }
 
+		}
+		else {
+			String message = String.format("Client adding error: Only %d clients allowed", MAX_CLIENTS);
+			throw new ClientExistsException(message);
 		}
 		
 	}

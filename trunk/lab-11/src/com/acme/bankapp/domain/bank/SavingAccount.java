@@ -1,17 +1,20 @@
 package com.acme.bankapp.domain.bank;
 
 public class SavingAccount extends AbstractAccount{
-	private double balance;
 
-	public SavingAccount(int id, double d) {
+	public SavingAccount(int id, double d) throws NegativeArgumentException {
 		super(id, d);
-		this.balance = d;
 	}
 
 
-	public void withdraw(double amount){
+	public void withdraw(double amount) throws NotEnoughFundsException{
 		if (this.balance >= amount){
 			this.balance -= amount;
+		}
+		else {
+			String message = String.format("Withdraw error: trying to withdraw %f. Max: %f", 
+					amount, this.balance);
+			throw new NotEnoughFundsException(message);
 		}
 
 	}
