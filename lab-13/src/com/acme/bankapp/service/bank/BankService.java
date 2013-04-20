@@ -64,4 +64,13 @@ public class BankService {
 		}
 			System.out.println(toPrint);
 	}
+	
+	public void saveBank(Bank bank){
+		
+	}
+	
+	public Bank readBank(String path) {
+		
+		return null;
+	}
 }
