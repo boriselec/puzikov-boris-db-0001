@@ -21,8 +21,17 @@ public class BankDataLoaderService {
 
 	public void loadFeed(Bank bank, LineNumberReader lnr) 
 			throws IOException, ParseFeedException, ClientExistsException, NegativeArgumentException {
+		
 		String line = lnr.readLine();
 		while (line != null) {
+			loadLine(bank, line);
+			line = lnr.readLine();
+		}
+	}
+	
+	public void loadLine(Bank bank, String line) 
+			throws ClientExistsException, NegativeArgumentException, ParseFeedException{
+		
 			Pattern pattern = Pattern.compile(FEED_PATTERN_STRING);
 			Matcher matcher = pattern.matcher(line);
 			if (matcher.find()) {
@@ -42,10 +51,10 @@ public class BankDataLoaderService {
 							new SavingAccount(bank.getID(), balance)));
 				}
 				
-				line = lnr.readLine();
 			} else {
-				throw new ParseFeedException("Parse feed error: Feed file is broken\n");
+				throw new ParseFeedException(String.format(
+						"Parse feed error: line %s is not valid\n", line));
 			}
-		}
+		
 	}
 }
