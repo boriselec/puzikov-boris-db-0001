@@ -18,7 +18,7 @@ public class BankServer {
 	Socket connection = null;
 	ObjectOutputStream out;
 	ObjectInputStream in;
-	Command message;
+	Command command;
 	int port;
 	Bank deserializedBank = null;
 
@@ -47,25 +47,25 @@ public class BankServer {
 			out = new ObjectOutputStream(connection.getOutputStream());
 			out.flush();
 			in = new ObjectInputStream(connection.getInputStream());
-			sendMessage("Connection successful");
+			sendCommand("Connection successful");
 			// 4. The two parts communicate via the input and output streams
 			do {
 				try {
-					message = (Command)in.readObject();
+					command = (Command)in.readObject();
 					
-					if (message == Command.CLOSE_CONNECTION_COMMAND){
-						sendMessage("bye");
+					if (command == Command.CLOSE_CONNECTION_COMMAND){
+						sendCommand("bye");
 						break;
 					}
 					
-					System.out.println("client>" + message.toString());
-					String outMessage = report.execute(bank, message);
-					sendMessage(outMessage);
+					System.out.println("client>" + command.toString());
+					String outcommand = report.execute(bank, command);
+					sendCommand(outcommand);
 					
 				} catch (ClassNotFoundException classnot) {
 					System.err.println("Data received in unknown format");
 				}
-			} while (message != Command.CLOSE_CONNECTION_COMMAND);
+			} while (command != Command.CLOSE_CONNECTION_COMMAND);
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		} finally {
@@ -80,7 +80,7 @@ public class BankServer {
 		}
 	}
 
-	void sendMessage(final String msg) {
+	private void sendCommand(final String msg) {
 		try {
 			out.writeObject(msg);
 			out.flush();
