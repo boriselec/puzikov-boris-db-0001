@@ -19,11 +19,17 @@ public class BankService {
 	private final static String BANK_HEADER = 
 			"Bank\n************\n";
 
-	public void addClient(Bank bank, Client client) throws ClientExistsException{
+	public void addClient(Bank bank, Client client) 
+			throws ClientExistsException, IOException{
 		bank.addClient(client);
-		;
+		saveBank(bank);
 	}
 	public void printBalance(Bank bank){
+		String toPrint = getPrint(bank);
+		System.out.println(toPrint);
+	}
+	
+	public String getPrint(Bank bank){
 		String toPrint = "";
 		if (bank.getNumOfClients() == 0){
 			toPrint += EMPTY_BANK;
@@ -39,9 +45,12 @@ public class BankService {
 			}
 		}
 			toPrint += "\n";
-		System.out.println(toPrint);
+			return toPrint;
+		
 	}
-	public void modifyBank(Bank bank) throws NotEnoughFundsException{
+	
+	public void modifyBank(Bank bank) 
+			throws NotEnoughFundsException, IOException{
 		Client[] clients = bank.getClients();
 		if (clients[0] != null){
 			clients[0].getAccounts().deposit(3.0);
@@ -49,6 +58,7 @@ public class BankService {
 		if (clients[1] != null){
 			clients[1].getAccounts().withdraw(3.0);
 		}
+		saveBank(bank);
 	}
 	
 	public void printMaximumAmountToWithdraw(Bank bank){

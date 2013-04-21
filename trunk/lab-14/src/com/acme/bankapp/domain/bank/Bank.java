@@ -6,6 +6,8 @@ import com.acme.bankapp.service.bank.ClientRegistrationListener;
 
 
 public class Bank implements Serializable{
+
+	private static final long serialVersionUID = -1733260089869094461L;
 	public final int MAX_CLIENTS = 10;
 	private Client[] clients = new Client[MAX_CLIENTS];
 	public final int MAX_LISTENERS = 100;
@@ -16,7 +18,9 @@ public class Bank implements Serializable{
 	
     public Bank(ClientRegistrationListener... listeners){
         this.listeners = listeners;
-}
+    }
+    
+    public Bank(){}
 
 	
 	public int getNumOfClients() {
