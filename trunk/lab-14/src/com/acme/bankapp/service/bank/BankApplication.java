@@ -11,51 +11,48 @@ import java.io.LineNumberReader;
 import java.util.Date;
 
 public class BankApplication {
+	private final static int port = 2006;
+
 	public static void main(String[] args) {
 		try {
-			int port = 2006;
-			String portString = new Integer(port).toString();
 
-			BankService service = new BankService();
 			Bank bank = createTestBank();
+			BankService service = new BankService();
 
+			boolean isServer = false;
 			for (int i = 0; i < args.length; i++) {
-				if ("-loadfeed".equals(args[i])) {
-					if (i + 1 < args.length) {
-						FileReader fReader = new FileReader(args[i + 1]);
-						LineNumberReader lnr = new LineNumberReader(fReader);
-						BankDataLoaderService feedLoaderService = new BankDataLoaderService();
-						feedLoaderService.loadFeed(bank, lnr);
-						lnr.close();
-						fReader.close();
-						i += 1;
-						continue;
-					}
-				}
-				if ("-loadbank".equals(args[i])) {
-					if (i + 1 < args.length) {
-						bank = service.readBank(args[i + 1]);
-						i += 1;
-						continue;
-					}
-				}
-				if ("-client".equals(args[i])) {
-					BankClient.main(new String[] { portString });
-				}
-				if ("-server".equals(args[i])) {
-					if (bank == null) {
-						BankServer.main(new String[] { portString });
-					}
-					else{
-						BankServer server = new BankServer(bank, port);
-						service.printBalance(bank);
-						server.startServer();
-						
-					}
+
+				switch (args[i]) {
+				case "-loadfeed":
+					if (i + 1 == args.length)
+						throw new IllegalArgumentException();
+					loadFeedFile(bank, args[++i]);
+					break;
+				case "-loadbank":
+					if (i + 1 == args.length)
+						throw new IllegalArgumentException();
+					bank = service.readBank(args[++i]);
+					break;
+				case "-server":
+					isServer = true;
+					break;
+				case "-client":
+					createClient();
+					break;
+
+				default:
+					String errorMessage = String
+							.format("Parse Args Error: %s is not valid command-line argument",
+									args[i]);
+					throw new IllegalArgumentException(errorMessage);
 				}
 			}
-			bank = createTestBank();
-			testCycle(service, bank);
+			if (isServer == true)
+				createServer(bank);
+			else {
+				bank = createTestBank();
+				testCycle(bank);
+			}
 
 		} catch (BankException ex) {
 			System.out.println(ex.getMessage());
@@ -69,8 +66,35 @@ public class BankApplication {
 
 	}
 
-	public static Bank createTestBank() {
+	private static void createClient() {
+		String portString = new Integer(port).toString();
+		BankClient.main(new String[] { portString });
+	}
+
+	private static void loadFeedFile(Bank bank, String path)
+			throws ParseFeedException, ClientExistsException,
+			NegativeArgumentException, IOException {
+		FileReader fReader = new FileReader(path);
+		LineNumberReader lnr = new LineNumberReader(fReader);
+		BankDataLoaderService feedLoaderService = new BankDataLoaderService();
+		feedLoaderService.loadFeed(bank, lnr);
+		lnr.close();
+		fReader.close();
+	}
+
+	private static void createServer(Bank bank) {
+		String portString = new Integer(port).toString();
+		if (bank == null) {
+			BankServer.main(new String[] { portString });
+		} else {
+			BankServer server = new BankServer(bank, port);
+			server.startServer();
+		}
+	}
+
+	private static Bank createTestBank() {
 		Bank bank = new Bank(new ClientRegistrationListener() {
+			private static final long serialVersionUID = 7782830221346863755L;
 
 			@Override
 			public void onClientAdded(Client client) {
@@ -78,6 +102,7 @@ public class BankApplication {
 
 			}
 		}, new ClientRegistrationListener() {
+			private static final long serialVersionUID = -6496994804997142949L;
 
 			@Override
 			public void onClientAdded(Client client) {
@@ -86,6 +111,7 @@ public class BankApplication {
 
 			}
 		}, new ClientRegistrationListener() {
+			private static final long serialVersionUID = 338850538707125656L;
 
 			@Override
 			public void onClientAdded(Client client) {
@@ -97,10 +123,11 @@ public class BankApplication {
 		return bank;
 	}
 
-	public static void testCycle(BankService service, Bank bank)
-			throws ClientExistsException, NegativeArgumentException,
-			NotEnoughFundsException, IOException, ClassNotFoundException {
+	private static void testCycle(Bank bank) throws ClientExistsException,
+			NegativeArgumentException, NotEnoughFundsException, IOException,
+			ClassNotFoundException {
 
+		BankService service = new BankService();
 		service.printBalance(bank);
 
 		service.addClient(bank, new Client("Bob", Gender.MALE,

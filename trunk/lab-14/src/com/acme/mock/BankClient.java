@@ -36,7 +36,20 @@ public class BankClient {
 			out.flush();
 			in = new ObjectInputStream(requestSocket.getInputStream());
 			// 3: Communicating with the server
-			userTerminal();
+			do {
+				try {
+					message = (String) in.readObject();
+					System.out.println("server response>" + message);
+					if ("bye".equals(message))
+						break;
+					
+					userTerminal();
+
+				} catch (ClassNotFoundException classNot) {
+					System.err.println("data received in unknown format");
+				}
+			} while (!message.equals("bye"));
+			System.out.println("Connection closed..");
 		} catch (UnknownHostException unknownHost) {
 			System.err.println("You are trying to connect to an unknown host!");
 		} catch (IOException ioException) {
@@ -53,58 +66,54 @@ public class BankClient {
 		}
 	}
 
-	void userTerminal() throws IOException {
-		do {
-			try {
-				message = (String) in.readObject();
-				System.out.println("server response>" + message);
-				if ("bye".equals(message))
-					break;
-				System.out.print(WELCOME);
-				BufferedReader bufferRead = new BufferedReader(
-						new InputStreamReader(System.in));
-				boolean wrongInput = true;
-				while (wrongInput == true) {
-					String userCommand = bufferRead.readLine();
-					String[] parsedCommandStrings = userCommand.split(" ");
+	private void userTerminal() throws IOException {
+		System.out.print(WELCOME);
+		BufferedReader bufferRead = new BufferedReader(new InputStreamReader(
+				System.in));
 
-					switch (parsedCommandStrings[0]) {
-					case "exit":
-						command = Command.CLOSE_CONNECTION_COMMAND;
-						sendMessage(command);
-						wrongInput = false;
-						break;
-					case "add":
-						if (parsedCommandStrings.length < 2) {
-							break;
-						} else {
-							command = new AddClentCommand(
-									parsedCommandStrings[1]);
-							sendMessage(command);
-							wrongInput = false;
-							break;
-						}
-					case "print":
-						command = new PrintCommand();
-						sendMessage(command);
-						wrongInput = false;
-						break;
+		boolean messageSent = false;
+		while (messageSent == false) {
+			String userCommand = bufferRead.readLine();
+			String[] parsedCommandStrings = userCommand.split(" ");
 
-					default:
-						System.out.print("Error: Unknown Command\n" + WELCOME);
-						break;
-					}
-				}
-
-			} catch (ClassNotFoundException classNot) {
-				System.err.println("data received in unknown format");
-			}
-		} while (!message.equals("bye"));
-		System.out.println("Connection closed..");
+			messageSent = parseCommand(parsedCommandStrings);
+		}
 
 	}
 
-	void sendMessage(final String msg) {
+	private boolean parseCommand(String[] parsedCommandStrings) {
+		boolean messageSent = false;
+		switch (parsedCommandStrings[0]) {
+		case "exit":
+			command = Command.CLOSE_CONNECTION_COMMAND;
+			sendMessage(command);
+			messageSent = true;
+			break;
+		case "add":
+			if (parsedCommandStrings.length < 2) {
+				System.out.print("Error: Missing add argument\n" + WELCOME);
+				break;
+			} else {
+				command = new AddClentCommand(parsedCommandStrings[1]);
+				sendMessage(command);
+				messageSent = true;
+				break;
+			}
+		case "print":
+			command = new PrintCommand();
+			sendMessage(command);
+			messageSent = true;
+			break;
+
+		default:
+			System.out.print("Error: Unknown Command\n" + WELCOME);
+			break;
+		}
+		return messageSent;
+
+	}
+
+	private void sendMessage(final String msg) {
 		try {
 			out.writeObject(msg);
 			out.flush();
@@ -113,7 +122,7 @@ public class BankClient {
 		}
 	}
 
-	void sendMessage(final Command msg) {
+	private void sendMessage(final Command msg) {
 		try {
 			out.writeObject(msg);
 			out.flush();
