@@ -13,30 +13,28 @@ import com.acme.bankapp.domain.bank.NotEnoughFundsException;
 import com.acme.bankapp.domain.bank.OverDraftLimitExceededException;
 
 public class BankService {
-	
-	private final static String EMPTY_BANK = 
-			"Bank is empty\n";
-	private final static String BANK_HEADER = 
-			"Bank\n************\n";
 
-	public void addClient(Bank bank, Client client) 
-			throws ClientExistsException, IOException{
+	private final static String EMPTY_BANK = "Bank is empty\n";
+	private final static String BANK_HEADER = "Bank\n************\n";
+
+	public void addClient(Bank bank, Client client)
+			throws ClientExistsException, IOException {
 		bank.addClient(client);
 		saveBank(bank);
 	}
-	public void printBalance(Bank bank){
+
+	public void printBalance(Bank bank) {
 		String toPrint = getPrint(bank);
 		System.out.println(toPrint);
 	}
-	
-	public String getPrint(Bank bank){
+
+	public String getPrint(Bank bank) {
 		String toPrint = "";
-		if (bank.getNumOfClients() == 0){
+		if (bank.getNumOfClients() == 0) {
 			toPrint += EMPTY_BANK;
-		}
-		else {
+		} else {
 			toPrint += BANK_HEADER;
-			for (Client client : bank.getClients()){
+			for (Client client : bank.getClients()) {
 				if (client == null)
 					continue;
 				else {
@@ -44,41 +42,41 @@ public class BankService {
 				}
 			}
 		}
-			toPrint += "\n";
-			return toPrint;
-		
+		toPrint += "\n";
+		return toPrint;
+
 	}
-	
-	public void modifyBank(Bank bank) 
-			throws NotEnoughFundsException, IOException{
+
+	public void modifyBank(Bank bank) throws NotEnoughFundsException,
+			IOException {
 		Client[] clients = bank.getClients();
-		if (clients[0] != null){
+		if (clients[0] != null) {
 			clients[0].getAccounts().deposit(3.0);
 		}
-		if (clients[1] != null){
+		if (clients[1] != null) {
 			clients[1].getAccounts().withdraw(3.0);
 		}
 		saveBank(bank);
 	}
-	
-	public void printMaximumAmountToWithdraw(Bank bank){
+
+	public void printMaximumAmountToWithdraw(Bank bank) {
 		String toPrint = "";
-		if (bank.getNumOfClients() == 0){
+		if (bank.getNumOfClients() == 0) {
 			toPrint += EMPTY_BANK;
-		}
-		else {
+		} else {
 			toPrint += BANK_HEADER;
-			for (Client client : bank.getClients()){
+			for (Client client : bank.getClients()) {
 				if (client == null)
 					continue;
 				else {
 					toPrint += client.toString();
-					toPrint += "\tMaximum amount to withdraw: " + 
-							client.getAccounts().maximumAmountToWithdraw() + '\n';
+					toPrint += "\tMaximum amount to withdraw: "
+							+ client.getAccounts().maximumAmountToWithdraw()
+							+ '\n';
 				}
 			}
 		}
-			System.out.println(toPrint);
+		System.out.println(toPrint);
 	}
 
 	public void saveBank(Bank bank) throws IOException {
@@ -88,9 +86,16 @@ public class BankService {
 	public void saveBank(Bank bank, String path) throws IOException {
 		FileOutputStream fos = new FileOutputStream("bank.ser");
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
-		oos.writeObject(bank);
-		oos.close();
-		fos.close();
+		try {
+			oos.writeObject(bank);
+		} finally {
+			try {
+				oos.close();
+				fos.close();
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
+		}
 
 	}
 
@@ -102,14 +107,23 @@ public class BankService {
 			ClassNotFoundException {
 		FileInputStream fis = new FileInputStream(path);
 		ObjectInputStream ois = new ObjectInputStream(fis);
-		Bank sb = (Bank) ois.readObject();
-		ois.close();
-		fis.close();
+		Bank sb;
+		try {
+			sb = (Bank) ois.readObject();
+		} finally {
+			try {
+				ois.close();
+				fis.close();
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
+		}
 		return sb;
 
 	}
+
 	public void reset(Bank bank) {
 		bank.reset();
-		
+
 	}
 }

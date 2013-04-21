@@ -76,10 +76,17 @@ public class BankApplication {
 			NegativeArgumentException, IOException {
 		FileReader fReader = new FileReader(path);
 		LineNumberReader lnr = new LineNumberReader(fReader);
-		BankDataLoaderService feedLoaderService = new BankDataLoaderService();
-		feedLoaderService.loadFeed(bank, lnr);
-		lnr.close();
-		fReader.close();
+		try {
+			BankDataLoaderService feedLoaderService = new BankDataLoaderService();
+			feedLoaderService.loadFeed(bank, lnr);
+		} finally {
+			try {
+				lnr.close();
+				fReader.close();
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
+		}
 	}
 
 	private static void createServer(Bank bank) {
