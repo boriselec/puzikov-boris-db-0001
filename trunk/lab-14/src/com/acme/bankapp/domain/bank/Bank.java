@@ -22,7 +22,6 @@ public class Bank implements Serializable{
     
     public Bank(){}
 
-	
 	public int getNumOfClients() {
 		return numOfClients;
 	}

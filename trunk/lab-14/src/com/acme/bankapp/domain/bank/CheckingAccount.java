@@ -69,7 +69,6 @@ public class CheckingAccount extends AbstractAccount{
 					amount, this.balance + this.overdraft);
 			throw new OverDraftLimitExceededException(message);
 		}
-		assert (this.balance + this.overdraft >= 0);
 	}
 
 	@Override
