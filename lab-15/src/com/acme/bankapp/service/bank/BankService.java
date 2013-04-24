@@ -7,10 +7,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import com.acme.bankapp.domain.bank.Bank;
-import com.acme.bankapp.domain.bank.Client;
 import com.acme.bankapp.domain.bank.ClientExistsException;
 import com.acme.bankapp.domain.bank.NotEnoughFundsException;
 import com.acme.bankapp.domain.bank.OverDraftLimitExceededException;
+import com.acme.domain.email.Client;
 
 public class BankService {
 

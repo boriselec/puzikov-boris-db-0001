@@ -1,6 +1,9 @@
-package com.acme.bankapp.domain.bank;
+package com.acme.domain.email;
 
 import java.io.Serializable;
+
+import com.acme.bankapp.domain.bank.AbstractAccount;
+import com.acme.bankapp.domain.bank.Gender;
 
 
 public class Client implements Serializable{
