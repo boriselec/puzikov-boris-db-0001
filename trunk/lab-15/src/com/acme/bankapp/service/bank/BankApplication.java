@@ -1,8 +1,12 @@
 package com.acme.bankapp.service.bank;
 
 import com.acme.bankapp.domain.bank.*;
+import com.acme.domain.email.Client;
+import com.acme.domain.email.impl.EmailImpl;
+import com.acme.domain.email.impl.QueueImpl;
 import com.acme.mock.BankClient;
 import com.acme.mock.BankServer;
+import com.acme.service.email.EmailService;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -63,6 +67,7 @@ public class BankApplication {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+		testQueue();
 
 	}
 
@@ -113,8 +118,16 @@ public class BankApplication {
 
 			@Override
 			public void onClientAdded(Client client) {
-				System.out.format("Notification for client %s to be sent\n",
-						client.getSalutation());
+//				System.out.format("Notification for client %s to be sent\n",
+//						client.getSalutation());
+				EmailService emailService = EmailService.getEmailService();
+				EmailImpl email = new EmailImpl();
+				email.setClient(client);
+				email.setFrom("Bank");
+				email.setTo(client.getSalutation());
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				emailService.sendNotificationEmail(email);
 
 			}
 		}, new ClientRegistrationListener() {
@@ -156,6 +169,111 @@ public class BankApplication {
 		bank = service.readBank();
 		service.printBalance(bank);
 
+	}
+	
+	private static void testQueue() {
+		final QueueImpl queue = new QueueImpl(3);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = (EmailImpl) queue.getEmail();
+				System.out.println(email.toString());
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = new EmailImpl();
+				try {
+					email.setClient(new Client("qw", Gender.FEMALE, new SavingAccount(1, 4)));
+				} catch (NegativeArgumentException e) {
+					e.printStackTrace();
+				}
+				email.setFrom("Bank");
+				email.setTo("listener");
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				queue.addEmail(email);
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = new EmailImpl();
+				try {
+					email.setClient(new Client("qw", Gender.FEMALE, new SavingAccount(1, 4)));
+				} catch (NegativeArgumentException e) {
+					e.printStackTrace();
+				}
+				email.setFrom("Bank");
+				email.setTo("listener");
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				queue.addEmail(email);
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = new EmailImpl();
+				try {
+					email.setClient(new Client("qw", Gender.FEMALE, new SavingAccount(1, 4)));
+				} catch (NegativeArgumentException e) {
+					e.printStackTrace();
+				}
+				email.setFrom("Bank");
+				email.setTo("listener");
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				queue.addEmail(email);
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = new EmailImpl();
+				try {
+					email.setClient(new Client("qw", Gender.FEMALE, new SavingAccount(1, 4)));
+				} catch (NegativeArgumentException e) {
+					e.printStackTrace();
+				}
+				email.setFrom("Bank");
+				email.setTo("listener");
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				queue.addEmail(email);
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = new EmailImpl();
+				try {
+					email.setClient(new Client("qw", Gender.FEMALE, new SavingAccount(1, 4)));
+				} catch (NegativeArgumentException e) {
+					e.printStackTrace();
+				}
+				email.setFrom("Bank");
+				email.setTo("listener");
+				email.setSubject("New Client");
+				email.setMessage("New Client Added");
+				queue.addEmail(email);
+			}
+		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				EmailImpl email = (EmailImpl) queue.getEmail();
+				System.out.println(email.toString());
+			}
+		}).start();
 	}
 
 }

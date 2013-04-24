@@ -3,6 +3,7 @@ package com.acme.bankapp.domain.bank;
 import java.io.Serializable;
 
 import com.acme.bankapp.service.bank.ClientRegistrationListener;
+import com.acme.domain.email.Client;
 
 
 public class Bank implements Serializable{

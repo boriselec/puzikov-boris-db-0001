@@ -7,12 +7,12 @@ import java.util.regex.Pattern;
 
 import com.acme.bankapp.domain.bank.Bank;
 import com.acme.bankapp.domain.bank.CheckingAccount;
-import com.acme.bankapp.domain.bank.Client;
 import com.acme.bankapp.domain.bank.ClientExistsException;
 import com.acme.bankapp.domain.bank.Gender;
 import com.acme.bankapp.domain.bank.NegativeArgumentException;
 import com.acme.bankapp.domain.bank.ParseFeedException;
 import com.acme.bankapp.domain.bank.SavingAccount;
+import com.acme.domain.email.Client;
 
 public class BankDataLoaderService {
 	
