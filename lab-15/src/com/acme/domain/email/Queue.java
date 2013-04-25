@@ -1,10 +1,11 @@
 package com.acme.domain.email;
 
-public interface Queue {
+public interface Queue<K> {
 
-	public Email getEmail();
+	public K getEmail();
 
-	public void addEmail(Email email);
+	public void addEmail(K email);
 
 	public void close();
+
 }
