@@ -1,9 +1,7 @@
 package com.acme.bankapp.service.bank;
 
-import static org.junit.Assert.*;
-import com.acme.bankapp.domain.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.acme.bankapp.domain.bank.Gender;
@@ -35,81 +33,52 @@ public class QueueImplTest {
 	public void mustEndWhenAddThehGet() {
 		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				EmailImpl email = initEmail();
 				queue.addEmail(email);
-				
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = (EmailImpl) queue.getEmail();
-				assertEquals(0, queue.getSize());
-			}
-		}).start();
-			}
-		}).start();
-	}
-	@Test
-	public void mustEndWhenGetThenAdd() {
-		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = (EmailImpl) queue.getEmail();
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = initEmail();
-				assertEquals(0, queue.getSize());
-			}
-		}).start();
+
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						EmailImpl email = (EmailImpl) queue.getEmail();
+					}
+				}).start();
 			}
 		}).start();
 		assertEquals(0, queue.getSize());
 	}
+
+	@Test
+	public void mustEndWhenGetThenAdd() {
+		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						EmailImpl email = initEmail();
+						queue.addEmail(email);
+					}
+				}).start();
+				EmailImpl email = (EmailImpl) queue.getEmail();
+			}
+		}).start();
+		assertEquals(0, queue.getSize());
+	}
+
 	@Test
 	public void elementExistWhenAdded() {
 		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = initEmail();
-				queue.addEmail(email);
-				assertEquals(1, queue.getSize());
-			}
-		}).start();
+		EmailImpl email = initEmail();
+		queue.addEmail(email);
+		assertEquals(1, queue.getSize());
 	}
-	@Test 
-	public void waitWhenGetInEmptyQueue(){
-		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
-		Thread t1 = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = (EmailImpl) queue.getEmail();
-			}
-		});
-		t1.start();
-		
-	}
-	@Test 
-	public void waitWhenAddInFullQueue(){
-		final QueueImpl<EmailImpl> queue = new QueueImpl<>(10);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				EmailImpl email = (EmailImpl) queue.getEmail();
-			}
-		}).start();
-		
-	}
-	
 
 }
