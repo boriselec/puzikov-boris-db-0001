@@ -2,6 +2,7 @@ package com.stockexchangeemulator.stockexchange.api;
 
 import com.stockexchangeemulator.domain.Response;
 
-public interface FilledListenerApi {
+public interface Observer {
+
 	void onFilled(Response response);
 }
