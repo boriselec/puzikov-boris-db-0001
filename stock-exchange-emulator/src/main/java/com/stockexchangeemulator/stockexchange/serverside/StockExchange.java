@@ -1,16 +1,29 @@
 package com.stockexchangeemulator.stockexchange.serverside;
 
-import com.stockexchangeemulator.stockexchange.business.ServiceContainer;
+import java.util.HashMap;
+
+import com.stockexchangeemulator.stockexchange.business.OrderBookService;
 
 public class StockExchange {
+	// TODO: define ticker symbols in file
 	private final static String[] TICKER_SYMBOLS = { "AAPL", "MCD", "IBM",
 			"MSFT", "PG" };
-	private ServiceContainer container;
+	private HashMap<String, OrderBookService> serviceContainer;
 	private ClientMap clientMap;
+
+	private HashMap<String, OrderBookService> createServiceContainer(
+			String[] tickers) {
+		HashMap<String, OrderBookService> result = new HashMap();
+
+		for (String ticker : tickers) {
+			result.put(ticker, new OrderBookService());
+		}
+		return result;
+	}
 
 	// TODO: remove
 	public void testCycle() {
-		container = new ServiceContainer(TICKER_SYMBOLS);
+		serviceContainer = createServiceContainer(TICKER_SYMBOLS);
 		clientMap = new ClientMap();
 	}
 }

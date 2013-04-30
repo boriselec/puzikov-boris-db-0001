@@ -5,10 +5,14 @@ import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
 
 public interface OrderingApi {
+	public int login() throws NoLoginException;
 
-	public void login() throws NoLoginException;
+	public int sendOrder(Order order) throws BadOrderException;
 
-	public void sendOrder(Order order, ResponseListenerApi listener)
-			throws BadOrderException;
+	public void addObserver(OrderObserver observer);
+
+	public void removeObserver(OrderObserver observer);
+
+	public void notifyObservers();
 
 }
