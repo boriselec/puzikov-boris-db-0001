@@ -1,4 +1,4 @@
-package com.stockexchangeemulator.client.clientside;
+package com.stockexchangeemulator.client.network;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,10 +9,11 @@ import com.stockexchangeemulator.client.service.api.OrderingApi;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
+import com.stockexchangeemulator.domain.Response;
 
-public class OrderingImpl implements OrderingApi {
+public class NetworkService implements OrderingApi {
 
-	public OrderingImpl(OrderObserver... observers) {
+	public NetworkService(OrderObserver... observers) {
 		if (observers == null)
 			this.observers = new ArrayList();
 		else
@@ -33,18 +34,17 @@ public class OrderingImpl implements OrderingApi {
 	}
 
 	public void addObserver(OrderObserver observer) {
-		// TODO Auto-generated method stub
-
+		observers.add(observer);
 	}
 
 	public void removeObserver(OrderObserver observer) {
-		// TODO Auto-generated method stub
-
+		observers.remove(observer);
 	}
 
-	public void notifyObservers() {
-		// TODO Auto-generated method stub
-
+	public void notifyObservers(Response response) {
+		for (OrderObserver observer : observers) {
+			observer.onResponse(response);
+		}
 	}
 
 }

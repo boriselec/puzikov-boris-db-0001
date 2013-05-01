@@ -1,43 +1,60 @@
 package com.stockexchangeemulator.stockexchange.business;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.WrappedOrder;
+import com.stockexchangeemulator.stockexchange.api.FilledObserver;
 import com.stockexchangeemulator.stockexchange.api.OrderingApi;
-import com.stockexchangeemulator.stockexchange.serverside.FilledObserver;
 
 public class OrderBookService implements OrderingApi {
 
 	public OrderBookService() {
-		queue = new LinkedList();
+		queue = new LinkedList<WrappedOrder>();
 		orderBook = new OrderBook();
-		observers = new ArrayList();
+		observers = new HashMap<Integer, FilledObserver>();
 	}
 
-	private LinkedList<Order> queue;
+	private List<WrappedOrder> queue;
 	private OrderBook orderBook;
-	private List<FilledObserver> observers;
+	private Map<Integer, FilledObserver> observers;
 
-	public void sendOrder(Order order) {
-		// TODO Auto-generated method stub
+	public void sendOrder(WrappedOrder order) {
+		synchronized (queue) {
+			queue.add(order);
+			notify();
+		}
+	}
 
+	public void FillOrderFromQueue() {
+		synchronized (queue) {
+			while (queue.isEmpty()) {
+				try {
+					queue.wait();
+				} catch (InterruptedException ignoredException) {
+				}
+				WrappedOrder order = queue.remove(0);
+				HashSet<Response> responses = orderBook.proceedOrder(order);
+
+				for (Response response : responses)
+					notifyObservers(response);
+			}
+		}
 	}
 
 	public void addObserver(FilledObserver observer) {
-		observers.add(observer);
+		observers.put(observer.getClientID(), observer);
 	}
 
 	public void removeObserver(FilledObserver observer) {
 		observers.remove(observer);
 	}
 
-	public void notify(int clientID) {
-		for (FilledObserver observer : observers)
-			if (observer.getClientID() == clientID)
-				observer.onFilled(new Response());
+	public void notifyObservers(Response response) {
+		observers.get(response.getClientID()).onFilled(response);
 	}
-
 }
