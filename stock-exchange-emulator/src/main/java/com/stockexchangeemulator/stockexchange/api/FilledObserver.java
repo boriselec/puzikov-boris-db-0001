@@ -1,9 +1,8 @@
-package com.stockexchangeemulator.stockexchange.serverside;
+package com.stockexchangeemulator.stockexchange.api;
 
 import com.stockexchangeemulator.domain.Response;
-import com.stockexchangeemulator.stockexchange.api.Observer;
 
-public class FilledObserver implements Observer {
+public class FilledObserver {
 
 	public FilledObserver(int clientID) {
 		this.clientID = clientID;

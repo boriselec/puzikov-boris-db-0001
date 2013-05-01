@@ -1,20 +1,23 @@
 package com.stockexchangeemulator.client.gui;
 
-import com.stockexchangeemulator.client.clientside.OrderingImpl;
+import com.stockexchangeemulator.client.network.NetworkService;
+import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
+import com.stockexchangeemulator.domain.Type;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
 public class GuiMock {
 	public static void main(String[] args) {
-		OrderingImpl client = new OrderingImpl(
-				new com.stockexchangeemulator.client.service.api.OrderObserver() {
+		NetworkService client = new NetworkService(new OrderObserver() {
 
-					public void onFilled(Response response) {
-						// TODO Auto-generated catch block
-					}
-				});
+			public void onResponse(Response response) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
 		try {
 			int myID = client.login();
 		} catch (NoLoginException e1) {
@@ -22,7 +25,8 @@ public class GuiMock {
 			e1.printStackTrace();
 		}
 		try {
-			int orderID = client.sendOrder(new Order());
+			int orderID = client.sendOrder(new Order("IBM", Type.OFFER, 1,
+					Float.POSITIVE_INFINITY));
 		} catch (BadOrderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

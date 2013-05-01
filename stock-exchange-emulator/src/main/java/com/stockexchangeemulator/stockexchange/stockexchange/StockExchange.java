@@ -1,4 +1,4 @@
-package com.stockexchangeemulator.stockexchange.serverside;
+package com.stockexchangeemulator.stockexchange.stockexchange;
 
 import java.util.HashMap;
 
