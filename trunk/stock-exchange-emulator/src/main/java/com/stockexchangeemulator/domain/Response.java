@@ -1,7 +1,8 @@
 package com.stockexchangeemulator.domain;
 
 public class Response {
-	public Response(WrappedOrder wrappedOrder, Status status) {
+
+	public Response(WrappedOrder wrappedOrder, Status status, int sharesCount) {
 		// TODO Auto-generated constructor stub
 	}
 
