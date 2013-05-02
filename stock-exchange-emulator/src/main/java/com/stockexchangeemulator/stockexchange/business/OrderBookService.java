@@ -1,7 +1,6 @@
 package com.stockexchangeemulator.stockexchange.business;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class OrderBookService implements OrderingApi {
 				} catch (InterruptedException ignoredException) {
 				}
 				WrappedOrder order = queue.remove(0);
-				HashSet<Response> responses = orderBook.proceedOrder(order);
+				LinkedList<Response> responses = orderBook.proceedOrder(order);
 
 				for (Response response : responses)
 					notifyObservers(response);
