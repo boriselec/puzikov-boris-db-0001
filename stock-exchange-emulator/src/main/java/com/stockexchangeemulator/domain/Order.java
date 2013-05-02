@@ -8,10 +8,17 @@ public class Order {
 		this.price = price;
 	}
 
+	public Order(String stockName, Type operation, int previousOrderID) {
+		this.stockName = stockName;
+		this.operation = operation;
+		this.previousOrderID = previousOrderID;
+	}
+
 	private String stockName;
 	private Type operation;
 	private int sharesCount;
 	private float price;
+	private int previousOrderID;
 
 	public float getPrice() {
 		return price;
@@ -31,5 +38,9 @@ public class Order {
 
 	public void partlyFill(int amount) {
 		sharesCount -= amount;
+	}
+
+	public int getOrderID() {
+		return previousOrderID;
 	}
 }

@@ -14,6 +14,7 @@ import com.stockexchangeemulator.domain.PriceComparator;
 import com.stockexchangeemulator.domain.PriceMatcher;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
+import com.stockexchangeemulator.domain.Type;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBook {
@@ -39,9 +40,37 @@ public class OrderBook {
 	private PriceMatcher startupMatcher;
 
 	public LinkedList<Response> proceedOrder(WrappedOrder wrappedOrder) {
-		addOrder(wrappedOrder);
+		if (wrappedOrder.getOrder().getType() == Type.CANCEL) {
+			return removeOrder(wrappedOrder);
+		} else {
+			addOrder(wrappedOrder);
+			return fillOrders();
+		}
+	}
 
-		return fillOrders();
+	private LinkedList<Response> removeOrder(WrappedOrder wrappedOrder) {
+		LinkedList<Response> response = new LinkedList<>();
+		int opderID = wrappedOrder.getOrder().getOrderID();
+
+		for (WrappedOrder order : bidsOrderBook) {
+			if (order.getOrderID() == opderID) {
+				bidsOrderBook.remove(order);
+				response.add(new Response(wrappedOrder, Status.CANCELED,
+						"Order canceled", 0, 0, null));
+				return response;
+			}
+		}
+		for (WrappedOrder order : offersOrderBook) {
+			if (order.getOrderID() == opderID) {
+				offersOrderBook.remove(order);
+				response.add(new Response(wrappedOrder, Status.CANCELED,
+						"Order canceled", 0, 0, null));
+				return response;
+			}
+		}
+		response.add(new Response(wrappedOrder, Status.ERROR, "Can't cancel",
+				0, 0, null));
+		return response;
 	}
 
 	private void addOrder(WrappedOrder wrappedOrder) {
@@ -118,7 +147,7 @@ public class OrderBook {
 			int sharesCount) {
 		Date dealDate = new Date();
 		Response response = new Response(wrappedOrder, Status.PARTIALLY_FILLED,
-				price, sharesCount, dealDate);
+				"Ok", price, sharesCount, dealDate);
 		wrappedOrder.getOrder().partlyFill(sharesCount);
 		log.info("partially filled" + wrappedOrder.getOrderID());
 		return response;
@@ -128,7 +157,7 @@ public class OrderBook {
 		Date dealDate = new Date();
 		int sharesCount = wrappedOrder.getOrder().getSharesCount();
 		Response response = new Response(wrappedOrder, Status.FULLY_FILLED,
-				price, sharesCount, dealDate);
+				"Ok", price, sharesCount, dealDate);
 		log.info("fully filled" + wrappedOrder.getOrderID());
 		return response;
 	}
