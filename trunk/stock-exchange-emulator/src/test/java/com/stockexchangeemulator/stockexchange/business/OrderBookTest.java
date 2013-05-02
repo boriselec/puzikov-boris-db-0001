@@ -1,29 +1,135 @@
 package com.stockexchangeemulator.stockexchange.business;
 
 import java.util.Date;
+import java.util.LinkedList;
 
 import junit.framework.TestCase;
 
+import org.junit.Test;
+
 import com.stockexchangeemulator.domain.Order;
-import com.stockexchangeemulator.domain.OrderComparator;
+import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.Status;
 import com.stockexchangeemulator.domain.Type;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBookTest extends TestCase {
 
-	public void test() {
-		OrderBook orderBook = new OrderBook();
-		Order order = new Order("IBM", Type.OFFER, 2, (float) 1.0);
-		Order order2 = new Order("IBM", Type.BID, 1, (float) 1.0);
-		Order order3 = new Order("IBM", Type.BID, 1, (float) 1.0);
-		Date date = new Date(2002, 1, 1, 1, 1, 1);
-		Date date2 = new Date(2003, 1, 1, 1, 1, 1);
-		WrappedOrder wrappedOrder = new WrappedOrder(0, 0, order, date);
-		WrappedOrder wrappedOrder3 = new WrappedOrder(0, 4, order3, date);
-		WrappedOrder wrappedOrder2 = new WrappedOrder(0, 3, order2, date);
-		OrderComparator comparator = new OrderComparator();
-		orderBook.proceedOrder(wrappedOrder2);
-		orderBook.proceedOrder(wrappedOrder3);
-		orderBook.proceedOrder(wrappedOrder);
+	private OrderBook orderBook = new OrderBook();
+	private LinkedList<Response> responses;
+	private int idCount = 0;
+
+	private WrappedOrder wrappedOrderGetTest(Type type, int sharesCount,
+			float price, Date date) {
+
+		return new WrappedOrder(0, idCount++, new Order("TEST", type,
+				sharesCount, price), date);
+	}
+
+	@Test
+	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 2,
+				(float) 1.0, new Date()));
+
+		assertEquals(responses.size(), 0);
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.OFFER, 2,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 2);
+
+		int numFullyFilled = 0;
+		int numPartiallyFilled = 0;
+		for (Response response : responses) {
+			if (response.getStatus() == Status.FULLY_FILLED)
+				numFullyFilled++;
+			else if (response.getStatus() == Status.PARTIALLY_FILLED)
+				numPartiallyFilled++;
+		}
+		assertEquals(numFullyFilled, 2);
+		assertEquals(numPartiallyFilled, 0);
+	}
+
+	@Test
+	public void testShouldNotFilledWhenAddedNonMatchingPriceOrder() {
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 2,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 0);
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.OFFER, 2,
+				(float) 2.0, new Date()));
+		assertEquals(responses.size(), 0);
+
+	}
+
+	@Test
+	public void testShouldPartiallyFillWhenAddedPartiallyMathingBid() {
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 1,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 0);
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.OFFER, 2,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 2);
+
+		int numFullyFilled = 0;
+		int numPartiallyFilled = 0;
+		for (Response response : responses) {
+			if (response.getStatus() == Status.FULLY_FILLED)
+				numFullyFilled++;
+			else if (response.getStatus() == Status.PARTIALLY_FILLED)
+				numPartiallyFilled++;
+		}
+		assertEquals(numFullyFilled, 1);
+		assertEquals(numPartiallyFilled, 1);
+	}
+
+	@Test
+	public void testShouldPartiallyFillWhenAddedPartiallyMathingOffer() {
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.OFFER, 1,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 0);
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 2,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 2);
+
+		int numFullyFilled = 0;
+		int numPartiallyFilled = 0;
+		for (Response response : responses) {
+			if (response.getStatus() == Status.FULLY_FILLED)
+				numFullyFilled++;
+			else if (response.getStatus() == Status.PARTIALLY_FILLED)
+				numPartiallyFilled++;
+		}
+		assertEquals(numFullyFilled, 1);
+		assertEquals(numPartiallyFilled, 1);
+	}
+
+	@Test
+	public void testShouldFillAllOrdersWhenAddedOneToManyMatchingOffer() {
+		for (int i = 0; i < 5; i++) {
+			responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 1,
+					(float) 1.0, new Date()));
+			assertEquals(responses.size(), 0);
+		}
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.OFFER, 5,
+				(float) 1.0, new Date()));
+		assertEquals(responses.size(), 6);
+
+		int numFullyFilled = 0;
+		int numPartiallyFilled = 0;
+		for (Response response : responses) {
+			if (response.getStatus() == Status.FULLY_FILLED)
+				numFullyFilled++;
+			else if (response.getStatus() == Status.PARTIALLY_FILLED)
+				numPartiallyFilled++;
+		}
+		assertEquals(numFullyFilled, 6);
+		assertEquals(numPartiallyFilled, 0);
+
 	}
 }
