@@ -26,6 +26,12 @@ public class OrderBookTest extends TestCase {
 				sharesCount, price), date);
 	}
 
+	private WrappedOrder wrappedOrderGetCancelTest(int orderID) {
+
+		return new WrappedOrder(0, idCount++, new Order("TEST", Type.CANCEL,
+				orderID), new Date());
+	}
+
 	@Test
 	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
 
@@ -130,6 +136,35 @@ public class OrderBookTest extends TestCase {
 		}
 		assertEquals(numFullyFilled, 6);
 		assertEquals(numPartiallyFilled, 0);
+
+	}
+
+	@Test
+	public void testShouldCancelWhenReceiveCancelOrder() {
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 2,
+				(float) 1.0, new Date()));
+
+		assertEquals(responses.size(), 0);
+
+		responses = orderBook.proceedOrder(wrappedOrderGetCancelTest(0));
+		assertEquals(responses.size(), 1);
+		assertEquals(responses.getFirst().getStatus(), Status.CANCELED);
+
+	}
+
+	@Test
+	public void testShouldReturnErrorResponseWhenReceiveCancelOrderWithNoSuchOrderInBook() {
+
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Type.BID, 2,
+				(float) 1.0, new Date()));
+
+		int nonExistent = 5;
+		responses = orderBook
+				.proceedOrder(wrappedOrderGetCancelTest(nonExistent));
+
+		assertEquals(responses.size(), 1);
+		assertEquals(responses.getFirst().getStatus(), Status.ERROR);
 
 	}
 }

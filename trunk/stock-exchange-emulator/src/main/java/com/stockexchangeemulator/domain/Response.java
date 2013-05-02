@@ -4,14 +4,14 @@ import java.util.Date;
 
 public class Response {
 
-	public Response(WrappedOrder wrappedOrder, Status status, float price,
-			int sharesCount, Date date) {
+	public Response(WrappedOrder wrappedOrder, Status status, String message,
+			float price, int sharesCount, Date date) {
 		this.clientID = wrappedOrder.getClientID();
 		this.status = status;
 		this.price = price;
 		this.tradedShares = sharesCount;
 		this.requestedShares = wrappedOrder.getOrder().getSharesCount();
-		this.message = "Ok";
+		this.message = message;
 		this.date = date;
 		this.orderID = wrappedOrder.getOrderID();
 	}
