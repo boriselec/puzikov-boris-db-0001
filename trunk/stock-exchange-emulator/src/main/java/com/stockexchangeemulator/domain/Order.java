@@ -36,7 +36,7 @@ public class Order {
 		return stockName;
 	}
 
-	public void partlyFill(int amount) {
+	public void partliallyFill(int amount) {
 		sharesCount -= amount;
 	}
 
