@@ -14,7 +14,7 @@ import com.stockexchangeemulator.domain.PriceComparator;
 import com.stockexchangeemulator.domain.PriceMatcher;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
-import com.stockexchangeemulator.domain.Type;
+import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBook {
@@ -40,7 +40,7 @@ public class OrderBook {
 	private PriceMatcher startupMatcher;
 
 	public LinkedList<Response> proceedOrder(WrappedOrder wrappedOrder) {
-		if (wrappedOrder.getOrder().getType() == Type.CANCEL) {
+		if (wrappedOrder.getOrder().getType() == Operation.CANCEL) {
 			return removeOrder(wrappedOrder);
 		} else {
 			addOrder(wrappedOrder);
@@ -163,7 +163,7 @@ public class OrderBook {
 				"Ok", price, sharesCount, dealDate);
 		log.info("fully filled" + wrappedOrder.getOrderID());
 
-		if (wrappedOrder.getOrder().getType() == Type.BID)
+		if (wrappedOrder.getOrder().getType() == Operation.BID)
 			removeFirst(bidsOrderBook);
 		else
 			removeFirst(offersOrderBook);

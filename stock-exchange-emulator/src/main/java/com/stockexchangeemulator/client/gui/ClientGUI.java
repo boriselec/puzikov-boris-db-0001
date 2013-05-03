@@ -2,6 +2,7 @@ package com.stockexchangeemulator.client.gui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.util.Date;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -15,6 +16,13 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+
+import com.stockexchangeemulator.domain.Operation;
+import com.stockexchangeemulator.domain.Order;
+import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.Status;
+import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class ClientGUI extends JFrame {
 
@@ -22,11 +30,11 @@ public class ClientGUI extends JFrame {
 	private JTextField textField;
 	private JTextField textField_1;
 	private JTextField textField_2;
-	private JTable table;
 
-	private static final String[] COLUMN_NAMES = { "Symbol", "Status",
-			"Quantity", "Traded", "Type", "Price", "Date" };
+	private static final String[] COLUMN_NAMES = { "Order ID", "Symbol",
+			"Status", "Quantity", "Traded", "Type", "Price", "Date" };
 	private JTable table_1;
+	private DefaultTableModel model;
 
 	/**
 	 * Launch the application.
@@ -121,26 +129,46 @@ public class ClientGUI extends JFrame {
 		btnNewButton_1.setBounds(10, 417, 91, 23);
 		panel_1.add(btnNewButton_1);
 
-		Object[][] testDataObjects = { { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" },
-				{ "", "", "", "", "", "", "" }, { "", "", "", "", "", "", "" } };
-		table_1 = new JTable(testDataObjects, COLUMN_NAMES);
+		model = new DefaultTableModel(null, COLUMN_NAMES);
+		table_1 = new JTable();
+		table_1.setModel(model);
 		JScrollPane jScrollPane = new JScrollPane(table_1);
 		jScrollPane.setBounds(10, 11, 664, 395);
 		panel_1.add(jScrollPane);
 
+		drawResponse(new Response(new WrappedOrder(0, 23, new Order("TEST",
+				Operation.BID, 1, (float) 1.0), new Date()),
+				Status.FULLY_FILLED, "ok", (float) 1.0, 1, new Date()));
+		drawResponse(new Response(new WrappedOrder(0, 1, new Order("TEST",
+				Operation.BID, 1, (float) 1.0), new Date()),
+				Status.FULLY_FILLED, "ok", (float) 1.0, 1, new Date()));
+	}
+
+	public void drawResponse(Response response) {
+		int index = getOrderIndex(response.getOrderID());
+		if (index != -1) {
+			model.removeRow(index);
+		}
+		String orderIDString = ((Integer) response.getOrderID()).toString();
+		String symbolsString = response.getSymbol();
+		String statusString = response.getStatus().toString();
+		String quantityString = ((Integer) response.getRequestedShares())
+				.toString();
+		String tradedString = ((Integer) response.getTradedShares()).toString();
+		String typeString = "OFFER";
+		String priceString = ((Float) response.getPrice()).toString();
+		String dateString = response.getDate().toString();
+
+		model.addRow(new Object[] { orderIDString, symbolsString, statusString,
+				quantityString, tradedString, typeString, priceString,
+				dateString });
+	}
+
+	private int getOrderIndex(int orderID) {
+		for (int i = 0; i < model.getRowCount(); i++) {
+			if (Integer.parseInt((String) model.getValueAt(i, 0)) == orderID)
+				return i;
+		}
+		return -1;
 	}
 }

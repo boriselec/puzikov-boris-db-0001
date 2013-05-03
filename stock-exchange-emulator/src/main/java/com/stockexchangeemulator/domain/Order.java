@@ -1,21 +1,21 @@
 package com.stockexchangeemulator.domain;
 
 public class Order {
-	public Order(String stockName, Type operation, int sharesCount, float price) {
+	public Order(String stockName, Operation operation, int sharesCount, float price) {
 		this.stockName = stockName;
 		this.operation = operation;
 		this.sharesCount = sharesCount;
 		this.price = price;
 	}
 
-	public Order(String stockName, Type operation, int previousOrderID) {
+	public Order(String stockName, Operation operation, int previousOrderID) {
 		this.stockName = stockName;
 		this.operation = operation;
 		this.previousOrderID = previousOrderID;
 	}
 
 	private String stockName;
-	private Type operation;
+	private Operation operation;
 	private int sharesCount;
 	private float price;
 	private int previousOrderID;
@@ -28,7 +28,7 @@ public class Order {
 		return sharesCount;
 	}
 
-	public Type getType() {
+	public Operation getType() {
 		return operation;
 	}
 
