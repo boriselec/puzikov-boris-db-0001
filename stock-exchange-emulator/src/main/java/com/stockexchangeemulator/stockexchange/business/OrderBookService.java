@@ -2,8 +2,9 @@ package com.stockexchangeemulator.stockexchange.business;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Logger;
 
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.WrappedOrder;
@@ -11,38 +12,44 @@ import com.stockexchangeemulator.stockexchange.api.FilledObserver;
 import com.stockexchangeemulator.stockexchange.api.OrderingApi;
 
 public class OrderBookService implements OrderingApi {
+	private static Logger log = Logger.getLogger(OrderBook.class.getName());
 
 	public OrderBookService() {
-		queue = new LinkedList<WrappedOrder>();
+		queue = new LinkedBlockingQueue<WrappedOrder>();
 		orderBook = new OrderBook();
 		observers = new HashMap<Integer, FilledObserver>();
+		runFilling();
 	}
 
-	private List<WrappedOrder> queue;
+	private LinkedBlockingQueue<WrappedOrder> queue;
 	private OrderBook orderBook;
 	private Map<Integer, FilledObserver> observers;
 
 	public void sendOrder(WrappedOrder order) {
-		synchronized (queue) {
-			queue.add(order);
-			notify();
-		}
+		queue.add(order);
 	}
 
-	public void FillOrderFromQueue() {
-		synchronized (queue) {
-			while (queue.isEmpty()) {
-				try {
-					queue.wait();
-				} catch (InterruptedException ignoredException) {
+	public void runFilling() {
+		new Thread() {
+			public void run() {
+				while (true) {
+					fillOrderFromQueue();
 				}
-				WrappedOrder order = queue.remove(0);
-				LinkedList<Response> responses = orderBook.proceedOrder(order);
-
-				for (Response response : responses)
-					notifyObservers(response);
 			}
+		}.start();
+	}
+
+	public void fillOrderFromQueue() {
+		LinkedList<Response> responses = null;
+		try {
+			WrappedOrder order = queue.take();
+			responses = orderBook.proceedOrder(order);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+
+		for (Response response : responses)
+			notifyObservers(response);
 	}
 
 	public void addObserver(FilledObserver observer) {
