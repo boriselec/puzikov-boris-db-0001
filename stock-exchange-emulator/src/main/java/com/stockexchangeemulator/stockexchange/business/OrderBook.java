@@ -83,6 +83,16 @@ public class OrderBook {
 		case OFFER:
 			offersOrderBook.add(wrappedOrder);
 			break;
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+
+	private void removeFirst(TreeSet<WrappedOrder> book) {
+		Iterator<WrappedOrder> iterator = book.iterator();
+		if (iterator.hasNext()) {
+			iterator.next();
+			iterator.remove();
 		}
 	}
 
@@ -97,50 +107,43 @@ public class OrderBook {
 
 			WrappedOrder bid = bidIterator.next();
 			float bidPrice = bid.getOrder().getPrice();
-			int bidSharesCount = bid.getOrder().getSharesCount();
 
 			WrappedOrder offer = offerIterator.next();
 			float offerPrice = offer.getOrder().getPrice();
-			int offerSharesCount = offer.getOrder().getSharesCount();
 
 			if (PriceComparator.match(offerPrice, bidPrice)) {
 				float dealPrice = mainMatcher.match(offer, bid);
-				if (offerSharesCount > bidSharesCount) {
-					Response response = fullyFill(bid, dealPrice);
-					spliceResponce(responses, response);
-					bidIterator.remove();
-					response = partiallyFill(offer, dealPrice, bidSharesCount);
-					spliceResponce(responses, response);
-				} else if (offerSharesCount < bidSharesCount) {
-					Response response = partiallyFill(bid, dealPrice,
-							offerSharesCount);
-					spliceResponce(responses, response);
-					response = fullyFill(offer, dealPrice);
-					spliceResponce(responses, response);
-					offerIterator.remove();
-				} else {
-					Response response = fullyFill(bid, dealPrice);
-					spliceResponce(responses, response);
-					bidIterator.remove();
-					response = fullyFill(offer, dealPrice);
-					spliceResponce(responses, response);
-					offerIterator.remove();
-				}
+
+				LinkedList<Response> dealResponses = fill(bid, offer, dealPrice);
+				spliceResponcesWithSameOrderID(responses, dealResponses);
 			} else
 				break;
 		}
 		return responses;
 	}
 
-	private void spliceResponce(LinkedList<Response> responses,
-			Response response) {
-		for (Response oldResponse : responses) {
-			if (oldResponse.getOrderID() == response.getOrderID()) {
-				oldResponse.splice(response);
-				return;
-			}
+	private LinkedList<Response> fill(WrappedOrder order1, WrappedOrder order2,
+			float dealPrice) {
+		LinkedList<Response> responses = new LinkedList<>();
+		int order1SharesCount = order1.getOrder().getSharesCount();
+		int order2SharesCount = order2.getOrder().getSharesCount();
+
+		if (order1SharesCount == order2SharesCount) {
+			responses.add(fullyFill(order1, dealPrice));
+			responses.add(fullyFill(order2, dealPrice));
+			return responses;
+		} else if (order1SharesCount > order2SharesCount) {
+			responses.add(partiallyFill(order1, dealPrice, order2SharesCount));
+			responses.add(fullyFill(order2, dealPrice));
+			return responses;
+
+		} else if (order1SharesCount < order2SharesCount) {
+			responses.add(fullyFill(order1, dealPrice));
+			responses.add(partiallyFill(order2, dealPrice, order1SharesCount));
+			return responses;
+
 		}
-		responses.add(response);
+		return null;
 	}
 
 	private Response partiallyFill(WrappedOrder wrappedOrder, float price,
@@ -148,7 +151,7 @@ public class OrderBook {
 		Date dealDate = new Date();
 		Response response = new Response(wrappedOrder, Status.PARTIALLY_FILLED,
 				"Ok", price, sharesCount, dealDate);
-		wrappedOrder.getOrder().partlyFill(sharesCount);
+		wrappedOrder.getOrder().partliallyFill(sharesCount);
 		log.info("partially filled" + wrappedOrder.getOrderID());
 		return response;
 	}
@@ -159,7 +162,24 @@ public class OrderBook {
 		Response response = new Response(wrappedOrder, Status.FULLY_FILLED,
 				"Ok", price, sharesCount, dealDate);
 		log.info("fully filled" + wrappedOrder.getOrderID());
+
+		if (wrappedOrder.getOrder().getType() == Type.BID)
+			removeFirst(bidsOrderBook);
+		else
+			removeFirst(offersOrderBook);
 		return response;
 	}
 
+	private void spliceResponcesWithSameOrderID(LinkedList<Response> responses,
+			LinkedList<Response> dealResponses) {
+		l: for (Response response : dealResponses) {
+			for (Response oldResponse : responses) {
+				if (oldResponse.getOrderID() == response.getOrderID()) {
+					oldResponse.splice(response);
+					continue l;
+				}
+			}
+			responses.add(response);
+		}
+	}
 }
