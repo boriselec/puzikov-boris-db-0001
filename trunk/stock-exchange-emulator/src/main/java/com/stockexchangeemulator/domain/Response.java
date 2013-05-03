@@ -14,6 +14,7 @@ public class Response {
 		this.message = message;
 		this.date = date;
 		this.orderID = wrappedOrder.getOrderID();
+		this.symbol = wrappedOrder.getOrder().getStockName();
 	}
 
 	private int clientID;
@@ -24,6 +25,7 @@ public class Response {
 	private String message;
 	private Date date;
 	private int orderID;
+	private String symbol;
 
 	public Status getStatus() {
 		return status;
@@ -58,6 +60,14 @@ public class Response {
 		if (response2.status == Status.FULLY_FILLED)
 			this.status = Status.FULLY_FILLED;
 		return this;
+	}
+
+	public String getSymbol() {
+		return symbol;
+	}
+
+	public int getRequestedShares() {
+		return requestedShares;
 	}
 
 }

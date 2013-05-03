@@ -4,7 +4,7 @@ import com.stockexchangeemulator.client.network.NetworkService;
 import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
-import com.stockexchangeemulator.domain.Type;
+import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
@@ -25,7 +25,7 @@ public class GuiMock {
 			e1.printStackTrace();
 		}
 		try {
-			int orderID = client.sendOrder(new Order("IBM", Type.OFFER, 1,
+			int orderID = client.sendOrder(new Order("IBM", Operation.OFFER, 1,
 					Float.POSITIVE_INFINITY));
 		} catch (BadOrderException e) {
 			// TODO Auto-generated catch block

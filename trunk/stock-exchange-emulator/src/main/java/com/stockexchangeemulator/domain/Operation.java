@@ -1,5 +1,5 @@
 package com.stockexchangeemulator.domain;
 
-public enum Type {
+public enum Operation {
 	OFFER, BID, CANCEL,
 }
