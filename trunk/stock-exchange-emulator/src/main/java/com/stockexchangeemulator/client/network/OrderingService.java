@@ -6,9 +6,7 @@ import java.util.List;
 
 import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.api.OrderingApi;
-import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
-import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
@@ -16,15 +14,15 @@ public class OrderingService implements OrderingApi {
 
 	public OrderingService(OrderObserver... observers) {
 		if (observers == null)
-			this.observers = new ArrayList();
+			this.observers = new ArrayList<OrderObserver>();
 		else
-			this.observers = new ArrayList(Arrays.asList(observers));
+			this.observers = new ArrayList<OrderObserver>(
+					Arrays.asList(observers));
 	}
 
 	private List<OrderObserver> observers;
 
 	public int login() throws NoLoginException {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -47,39 +45,4 @@ public class OrderingService implements OrderingApi {
 			observer.onResponse(response);
 		}
 	}
-
-	public Order getOrder(String stockName, Operation operation, String type,
-			String priceString, String sharesCountString)
-			throws BadOrderException {
-
-		float price;
-		int sharesCount;
-		if ("limit".equals(type)) {
-			try {
-				price = Float.parseFloat(priceString);
-			} catch (NumberFormatException e) {
-				throw new BadOrderException();
-			}
-			if (price <= 0)
-				throw new BadOrderException(
-						"Limit order should hava positive price");
-		} else {
-			price = (operation == Operation.BID) ? Float.POSITIVE_INFINITY
-					: Float.NEGATIVE_INFINITY;
-		}
-		try {
-			sharesCount = Integer.parseInt(sharesCountString);
-		} catch (NumberFormatException e) {
-			throw new BadOrderException();
-		}
-		if (sharesCount <= 0)
-			throw new BadOrderException("Order should hava positive quantity");
-		Order result = new Order(stockName, operation, sharesCount, price);
-		return result;
-	}
-
-	public void sendCancelOrder(int orderID) {
-
-	}
-
 }

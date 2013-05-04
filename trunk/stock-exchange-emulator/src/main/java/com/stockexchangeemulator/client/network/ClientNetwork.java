@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
-public class Client {
+public class ClientNetwork {
 	private final static int defaultPort = 4000;
 	private int port;
 
@@ -43,7 +43,12 @@ public class Client {
 	}
 
 	public static void main(String[] args) {
-		Client client = new Client();
+		ClientNetwork client = new ClientNetwork();
 		client.runClient();
+	}
+
+	public void connect() {
+		// TODO Auto-generated method stub
+
 	}
 }
