@@ -1,7 +1,8 @@
 package com.stockexchangeemulator.domain;
 
 public class Order {
-	public Order(String stockName, Operation operation, int sharesCount, float price) {
+	public Order(String stockName, Operation operation, int sharesCount,
+			float price) {
 		this.stockName = stockName;
 		this.operation = operation;
 		this.sharesCount = sharesCount;
