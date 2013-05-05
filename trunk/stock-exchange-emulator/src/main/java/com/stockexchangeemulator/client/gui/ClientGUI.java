@@ -285,6 +285,7 @@ public class ClientGUI extends JFrame {
 			OrderVerifier orderVerifier = new OrderVerifier();
 			Order order = orderVerifier.getOrder(stockName, operation, type,
 					price, sharesCount);
+			clearTextFields();
 			int orderId = orderingService.sendOrder(order);
 			drawOrder(orderId, order);
 		} catch (BadOrderException e) {
@@ -292,6 +293,12 @@ public class ClientGUI extends JFrame {
 					"Bad arguments: " + e.getMessage());
 		}
 
+	}
+
+	private void clearTextFields() {
+		symbolTextField.setText("");
+		priceTextField.setText("");
+		quantityTextField.setText("");
 	}
 
 	private void cancelOrderClick() {
