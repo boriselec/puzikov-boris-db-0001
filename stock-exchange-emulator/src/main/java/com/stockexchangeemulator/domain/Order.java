@@ -1,6 +1,11 @@
 package com.stockexchangeemulator.domain;
 
-public class Order {
+import java.io.Serializable;
+
+public class Order implements Serializable {
+
+	private static final long serialVersionUID = 6690070311631397742L;
+
 	public Order(String stockName, Operation operation, int sharesCount,
 			float price) {
 		this.stockName = stockName;

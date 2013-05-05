@@ -27,7 +27,11 @@ public class OrderingService implements OrderingApi {
 	}
 
 	public int sendOrder(Order order) {
-		// TODO Auto-generated method stub
+		// TEST
+		MockClient client = new MockClient();
+		Response response = client.run(order);
+		System.out.println(response);
+		notifyObservers(response);
 		return 0;
 
 	}

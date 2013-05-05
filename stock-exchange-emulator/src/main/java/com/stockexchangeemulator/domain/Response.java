@@ -1,8 +1,14 @@
 package com.stockexchangeemulator.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Response {
+public class Response implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6816711724699067797L;
 
 	public Response(WrappedOrder wrappedOrder, Status status, String message,
 			float price, int sharesCount, Date date) {
