@@ -29,8 +29,6 @@ import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
-import com.stockexchangeemulator.domain.Status;
-import com.stockexchangeemulator.domain.WrappedOrder;
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
@@ -214,19 +212,6 @@ public class ClientGUI extends JFrame {
 		});
 		loginButton.setBounds(10, 38, 158, 23);
 		panel_2.add(loginButton);
-		// TEST
-		drawOrder(1, new Order(clientID, "TEST", Operation.OFFER, 1,
-				(float) 1.0));
-		drawOrder(23, new Order(clientID, "TEST", Operation.OFFER, 3,
-				(float) 1.0));
-		Response response = new Response(new WrappedOrder(0, 23, new Order(
-				clientID, "TEST", Operation.BID, 1, (float) 1.0), new Date()),
-				Status.PARTIALLY_FILLED, "ok", (float) 1.5, 1, new Date());
-		orderingService.notifyObservers(response);
-		Response response2 = new Response(new WrappedOrder(0, 23, new Order(
-				clientID, "TEST", Operation.BID, 1, (float) 1.0), new Date()),
-				Status.PARTIALLY_FILLED, "ok", (float) 1.2, 1, new Date());
-		orderingService.notifyObservers(response2);
 	}
 
 	public boolean checkConnection() {

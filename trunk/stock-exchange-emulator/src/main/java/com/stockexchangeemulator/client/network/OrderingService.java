@@ -16,7 +16,7 @@ import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
 public class OrderingService implements OrderingApi {
-	private final static int DEFAULT_PORT = 2005;
+	private final static int DEFAULT_PORT = 2006;
 	private Socket socket;
 	private ObjectInputStream inputStream;
 	private ObjectOutputStream outputStream;
