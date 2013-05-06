@@ -6,8 +6,9 @@ public class Order implements Serializable {
 
 	private static final long serialVersionUID = 6690070311631397742L;
 
-	public Order(String stockName, Operation operation, int sharesCount,
-			float price) {
+	public Order(int clientID, String stockName, Operation operation,
+			int sharesCount, float price) {
+		this.clientID = clientID;
 		this.stockName = stockName;
 		this.operation = operation;
 		this.sharesCount = sharesCount;
@@ -25,6 +26,7 @@ public class Order implements Serializable {
 	private int sharesCount;
 	private float price;
 	private int previousOrderID;
+	private int clientID;
 
 	public float getPrice() {
 		return price;
@@ -49,4 +51,9 @@ public class Order implements Serializable {
 	public int getOrderID() {
 		return previousOrderID;
 	}
+
+	public int getClientID() {
+		return clientID;
+	}
+
 }

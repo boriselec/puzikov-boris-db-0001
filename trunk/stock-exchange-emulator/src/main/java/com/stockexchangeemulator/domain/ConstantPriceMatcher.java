@@ -9,7 +9,7 @@ public class ConstantPriceMatcher implements PriceMatcher {
 	}
 
 	@Override
-	public float match(WrappedOrder o1, WrappedOrder o2) {
+	public float match(WrappedOrder o1, WrappedOrder o2, float lastDealPrice) {
 		return matchingPrice;
 	}
 

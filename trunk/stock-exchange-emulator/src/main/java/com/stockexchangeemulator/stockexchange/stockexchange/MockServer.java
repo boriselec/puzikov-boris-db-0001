@@ -6,7 +6,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
+import java.util.Random;
 
+import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
@@ -17,7 +19,7 @@ public class MockServer {
 	Socket connection = null;
 	ObjectOutputStream out;
 	ObjectInputStream in;
-	Order message;
+	Object message;
 
 	void run() {
 		try {
@@ -36,14 +38,30 @@ public class MockServer {
 			// 4. The two parts communicate via the input and output streams
 			do {
 				try {
-					Object objectMessageObject = in.readObject();
-					if (objectMessageObject instanceof Order)
-						message = (Order) objectMessageObject;
-					System.out.println("client>" + message);
-					sendMessage(new Response(new WrappedOrder(0,
-							message.getOrderID(), message, new Date()),
-							Status.FULLY_FILLED, "ok", (float) 1.0, 1,
-							new Date()));
+					message = in.readObject();
+					if (message instanceof Order) {
+						message = (Order) message;
+						System.out.println("client>" + message);
+						if (((Order) message).getType() == Operation.CANCEL) {
+							sendMessage(new Response(new WrappedOrder(0,
+									((Order) message).getOrderID(),
+									(Order) message, new Date()),
+									Status.CANCELED, "ok", (float) 0.0, 0,
+									new Date()));
+						} else {
+
+							Random r = new Random();
+							sendMessage(new Response(new WrappedOrder(0,
+									r.nextInt(), (Order) message, new Date()),
+									Status.FULLY_FILLED, "ok", (float) 1.0, 1,
+									new Date()));
+						}
+					} else if (message instanceof String) {
+						if (message.equals("login"))
+							sendMessage(1);
+						if (message.equals("bye"))
+							break;
+					}
 				} catch (ClassNotFoundException classnot) {
 					System.err.println("Data received in unknown format");
 				}

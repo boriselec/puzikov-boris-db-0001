@@ -25,5 +25,8 @@ public class StockExchange {
 	public void testCycle() {
 		serviceContainer = createServiceContainer(TICKER_SYMBOLS);
 		clientMap = new ClientMap();
+		for (String ticker : TICKER_SYMBOLS) {
+			OrderBookService orderBookService = serviceContainer.get(ticker);
+		}
 	}
 }

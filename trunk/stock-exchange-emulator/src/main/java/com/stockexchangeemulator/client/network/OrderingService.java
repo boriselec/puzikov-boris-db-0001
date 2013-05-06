@@ -23,16 +23,40 @@ public class OrderingService implements OrderingApi {
 	private List<OrderObserver> observers;
 
 	public int login() throws NoLoginException {
-		return 0;
+		MockClient client = new MockClient();
+		int response;
+		try {
+			response = (int) client.run("login");
+		} catch (NoLoginException e) {
+			throw e;
+		}
+		return response;
 	}
 
 	public int sendOrder(Order order) {
 		// TEST
 		MockClient client = new MockClient();
-		Response response = client.run(order);
+		Response response = null;
+		try {
+			response = (Response) client.run(order);
+		} catch (NoLoginException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println(response);
-		notifyObservers(response);
-		return 0;
+		final Response response2 = response;
+		new Thread() {
+			public void run() {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				notifyObservers(response2);
+			}
+		}.start();
+		return response.getOrderID();
 
 	}
 
