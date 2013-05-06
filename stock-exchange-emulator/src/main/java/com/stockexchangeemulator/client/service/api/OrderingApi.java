@@ -8,7 +8,8 @@ import com.stockexchangeemulator.domain.Response;
 public interface OrderingApi {
 	public int login() throws NoLoginException;
 
-	public int sendOrder(Order order) throws BadOrderException;
+	public int sendOrder(Order order) throws BadOrderException,
+			NoLoginException;
 
 	public void addObserver(OrderObserver observer);
 

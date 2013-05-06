@@ -9,16 +9,17 @@ import java.util.logging.Logger;
 import com.stockexchangeemulator.domain.ConstantPriceMatcher;
 import com.stockexchangeemulator.domain.InverseOrderComparator;
 import com.stockexchangeemulator.domain.LastPriceMatcher;
+import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.OrderComparator;
 import com.stockexchangeemulator.domain.PriceComparator;
 import com.stockexchangeemulator.domain.PriceMatcher;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
-import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBook {
 	private static Logger log = Logger.getLogger(OrderBook.class.getName());
+	private static float DEFAULT_PRICE = (float) 100.0;
 
 	public OrderBook() {
 		bidsOrderBook = new TreeSet<>(new InverseOrderComparator());
@@ -38,6 +39,7 @@ public class OrderBook {
 
 	private PriceMatcher mainMatcher;
 	private PriceMatcher startupMatcher;
+	private float lastPrice = DEFAULT_PRICE;
 
 	public LinkedList<Response> proceedOrder(WrappedOrder wrappedOrder) {
 		if (wrappedOrder.getOrder().getType() == Operation.CANCEL) {
@@ -112,7 +114,8 @@ public class OrderBook {
 			float offerPrice = offer.getOrder().getPrice();
 
 			if (PriceComparator.match(offerPrice, bidPrice)) {
-				float dealPrice = mainMatcher.match(offer, bid);
+				float dealPrice = mainMatcher.match(offer, bid, lastPrice);
+				lastPrice = dealPrice;
 
 				LinkedList<Response> dealResponses = fill(bid, offer, dealPrice);
 				spliceResponcesWithSameOrderID(responses, dealResponses);

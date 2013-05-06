@@ -7,10 +7,10 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
+import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
-import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBookTest extends TestCase {
@@ -22,26 +22,26 @@ public class OrderBookTest extends TestCase {
 	private WrappedOrder wrappedOrderGetTest(Operation type, int sharesCount,
 			float price, Date date) {
 
-		return new WrappedOrder(0, idCount++, new Order("TEST", type,
+		return new WrappedOrder(0, idCount++, new Order(0, "TEST", type,
 				sharesCount, price), date);
 	}
 
 	private WrappedOrder wrappedOrderGetCancelTest(int orderID) {
 
-		return new WrappedOrder(0, idCount++, new Order("TEST", Operation.CANCEL,
-				orderID), new Date());
+		return new WrappedOrder(0, idCount++, new Order("TEST",
+				Operation.CANCEL, orderID), new Date());
 	}
 
 	@Test
 	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				2, (float) 1.0, new Date()));
 
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER,
+				2, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 2);
 
 		int numFullyFilled = 0;
@@ -58,12 +58,12 @@ public class OrderBookTest extends TestCase {
 
 	@Test
 	public void testShouldNotFilledWhenAddedNonMatchingPriceOrder() {
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				2, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER, 2,
-				(float) 2.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER,
+				2, (float) 2.0, new Date()));
 		assertEquals(responses.size(), 0);
 
 	}
@@ -71,12 +71,12 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldPartiallyFillWhenAddedPartiallyMathingBid() {
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 1,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				1, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER,
+				2, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 2);
 
 		int numFullyFilled = 0;
@@ -94,12 +94,12 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldPartiallyFillWhenAddedPartiallyMathingOffer() {
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER, 1,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER,
+				1, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				2, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 2);
 
 		int numFullyFilled = 0;
@@ -117,13 +117,13 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldFillAllOrdersWhenAddedOneToManyMatchingOffer() {
 		for (int i = 0; i < 5; i++) {
-			responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 1,
-					(float) 1.0, new Date()));
+			responses = orderBook.proceedOrder(wrappedOrderGetTest(
+					Operation.BID, 1, Float.POSITIVE_INFINITY, new Date()));
 			assertEquals(responses.size(), 0);
 		}
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER, 5,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.OFFER,
+				5, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 6);
 
 		int numFullyFilled = 0;
@@ -142,8 +142,8 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldCancelWhenReceiveCancelOrder() {
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				2, (float) 1.0, new Date()));
 
 		assertEquals(responses.size(), 0);
 
@@ -156,8 +156,8 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldReturnErrorResponseWhenReceiveCancelOrderWithNoSuchOrderInBook() {
 
-		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID, 2,
-				(float) 1.0, new Date()));
+		responses = orderBook.proceedOrder(wrappedOrderGetTest(Operation.BID,
+				2, (float) 1.0, new Date()));
 
 		int nonExistent = 5;
 		responses = orderBook

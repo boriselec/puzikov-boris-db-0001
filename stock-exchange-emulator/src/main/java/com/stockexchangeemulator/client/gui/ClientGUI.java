@@ -51,7 +51,8 @@ public class ClientGUI extends JFrame {
 	private JTextField quantityTextField;
 
 	private static final String[] COLUMN_NAMES = { "Order ID", "Symbol",
-			"Status", "Quantity", "Traded", "Type", "Price", "Date" };
+			"Status", "Quantity", "Traded", "Deal price", "Type", "Limit",
+			"Date" };
 	private JTable table;
 	private DefaultTableModel dataTable;
 	private final JRadioButton limitRadioButton;
@@ -213,13 +214,19 @@ public class ClientGUI extends JFrame {
 		});
 		loginButton.setBounds(10, 38, 158, 23);
 		panel_2.add(loginButton);
-
-		drawOrder(1, new Order("TEST", Operation.OFFER, 1, (float) 1.0));
-		drawOrder(23, new Order("TEST", Operation.OFFER, 1, (float) 1.0));
+		// TEST
+		drawOrder(1, new Order(clientID, "TEST", Operation.OFFER, 1,
+				(float) 1.0));
+		drawOrder(23, new Order(clientID, "TEST", Operation.OFFER, 3,
+				(float) 1.0));
 		Response response = new Response(new WrappedOrder(0, 23, new Order(
-				"TEST", Operation.BID, 1, (float) 1.0), new Date()),
-				Status.FULLY_FILLED, "ok", (float) 1.0, 1, new Date());
+				clientID, "TEST", Operation.BID, 1, (float) 1.0), new Date()),
+				Status.PARTIALLY_FILLED, "ok", (float) 1.5, 1, new Date());
 		orderingService.notifyObservers(response);
+		Response response2 = new Response(new WrappedOrder(0, 23, new Order(
+				clientID, "TEST", Operation.BID, 1, (float) 1.0), new Date()),
+				Status.PARTIALLY_FILLED, "ok", (float) 1.2, 1, new Date());
+		orderingService.notifyObservers(response2);
 	}
 
 	public boolean checkConnection() {
@@ -236,12 +243,18 @@ public class ClientGUI extends JFrame {
 		String statusString = "SEND";
 		String quantityString = ((Integer) order.getSharesCount()).toString();
 		String tradedString = "0";
+		String dealPriceString = "0";
 		String typeString = order.getType().toString();
-		String priceString = ((Float) order.getPrice()).toString();
+		String priceString;
+		if ((Float) order.getPrice() == Float.POSITIVE_INFINITY
+				|| (Float) order.getPrice() == Float.NEGATIVE_INFINITY)
+			priceString = "MARKET";
+		else
+			priceString = ((Float) order.getPrice()).toString();
 		String dateString = new Date().toString();
 		dataTable.addRow(new Object[] { orderIDString, symbolsString,
-				statusString, quantityString, tradedString, typeString,
-				priceString, dateString });
+				statusString, quantityString, tradedString, dealPriceString,
+				typeString, priceString, dateString });
 
 	}
 
@@ -255,14 +268,26 @@ public class ClientGUI extends JFrame {
 		}
 
 		String statusString = response.getStatus().toString();
-		String tradedString = ((Integer) response.getTradedShares()).toString();
-		String priceString = ((Float) response.getPrice()).toString();
 		String dateString = response.getDate().toString();
 
+		int oldTradedShares = Integer.parseInt((String) dataTable.getValueAt(
+				index, 4));
+		float oldPrice = Float.parseFloat((String) dataTable.getValueAt(index,
+				5));
+		int newDealTradedShares = (Integer) response.getTradedShares();
+		float newDealPrice = (Float) response.getPrice();
+
+		int newTradedShares = oldTradedShares + newDealTradedShares;
+		float newPrice = (float) (oldTradedShares * oldPrice + newDealTradedShares
+				* newDealPrice)
+				/ (oldTradedShares + newDealTradedShares);
+		String tradedShares = ((Integer) newTradedShares).toString();
+		String priceString = ((Float) newPrice).toString();
+
 		dataTable.setValueAt(statusString, index, 2);
-		dataTable.setValueAt(tradedString, index, 4);
-		dataTable.setValueAt(priceString, index, 6);
-		dataTable.setValueAt(dateString, index, 7);
+		dataTable.setValueAt(tradedShares, index, 4);
+		dataTable.setValueAt(priceString, index, 5);
+		dataTable.setValueAt(dateString, index, 8);
 	}
 
 	private int getOrderIndex(int orderID) {
@@ -283,8 +308,8 @@ public class ClientGUI extends JFrame {
 		String sharesCount = quantityTextField.getText();
 		try {
 			OrderVerifier orderVerifier = new OrderVerifier();
-			Order order = orderVerifier.getOrder(stockName, operation, type,
-					price, sharesCount);
+			Order order = orderVerifier.getOrder(clientID, stockName,
+					operation, type, price, sharesCount);
 			clearTextFields();
 			int orderId = orderingService.sendOrder(order);
 			drawOrder(orderId, order);
@@ -336,6 +361,7 @@ public class ClientGUI extends JFrame {
 			isConnected = true;
 			loginStatusLabel.setText("Connected. ClientID is " + clientID);
 		} catch (NoLoginException ex) {
+			loginStatusLabel.setText("Disconnected");
 			JOptionPane.showMessageDialog(contentPane, "Login error");
 		}
 
