@@ -1,8 +1,13 @@
 package com.stockexchangeemulator.client.network;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.api.OrderingApi;
@@ -11,6 +16,12 @@ import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
 public class OrderingService implements OrderingApi {
+	private final static int DEFAULT_PORT = 2005;
+	private Socket socket;
+	private ObjectInputStream inputStream;
+	private ObjectOutputStream outputStream;
+	private List<OrderObserver> observers;
+	private LinkedBlockingQueue<Integer> responseOrderID;
 
 	public OrderingService(OrderObserver... observers) {
 		if (observers == null)
@@ -18,46 +29,59 @@ public class OrderingService implements OrderingApi {
 		else
 			this.observers = new ArrayList<OrderObserver>(
 					Arrays.asList(observers));
+		responseOrderID = new LinkedBlockingQueue<>();
 	}
 
-	private List<OrderObserver> observers;
-
 	public int login() throws NoLoginException {
-		MockClient client = new MockClient();
-		int response;
 		try {
-			response = (int) client.run("login");
-		} catch (NoLoginException e) {
-			throw e;
+			socket = new Socket("localhost", DEFAULT_PORT);
+			outputStream = new ObjectOutputStream(socket.getOutputStream());
+			outputStream.flush();
+			inputStream = new ObjectInputStream(socket.getInputStream());
+
+			int responseClientID = (int) inputStream.readObject();
+			runRead();
+			return responseClientID;
+
+		} catch (ClassNotFoundException | IOException e) {
+			throw new NoLoginException(e.getMessage());
 		}
-		return response;
+	}
+
+	private void runRead() {
+		new Thread() {
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						Object response = inputStream.readObject();
+						if (response instanceof Response) {
+							notifyObservers((Response) response);
+						} else if (response instanceof Integer)
+							responseOrderID.add((int) response);
+					} catch (ClassNotFoundException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 	}
 
 	public int sendOrder(Order order) {
-		// TEST
-		MockClient client = new MockClient();
-		Response response = null;
+		int result = 0;
 		try {
-			response = (Response) client.run(order);
-		} catch (NoLoginException e) {
+			outputStream.writeObject(order);
+			try {
+				result = responseOrderID.take();
+			} catch (InterruptedException ignoredException) {
+
+			}
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(response);
-		final Response response2 = response;
-		new Thread() {
-			public void run() {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				notifyObservers(response2);
-			}
-		}.start();
-		return response.getOrderID();
-
+		return result;
 	}
 
 	public void addObserver(OrderObserver observer) {
