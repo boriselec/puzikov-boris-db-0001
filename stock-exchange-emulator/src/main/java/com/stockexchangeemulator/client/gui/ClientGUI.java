@@ -362,8 +362,8 @@ public class ClientGUI extends JFrame {
 			loginStatusLabel.setText("Connected. ClientID is " + clientID);
 		} catch (NoLoginException ex) {
 			loginStatusLabel.setText("Disconnected");
-			JOptionPane.showMessageDialog(contentPane, "Login error");
+			JOptionPane.showMessageDialog(contentPane,
+					"Login error: " + ex.getMessage());
 		}
-
 	}
 }

@@ -24,7 +24,7 @@ public class MockServer {
 	void run() {
 		try {
 			// 1. creating a server socket
-			providerSocket = new ServerSocket(2004, 10);
+			providerSocket = new ServerSocket(2005, 10);
 			// 2. Wait for connection
 			System.out.println("Waiting for connection");
 			connection = providerSocket.accept();
@@ -34,7 +34,8 @@ public class MockServer {
 			out = new ObjectOutputStream(connection.getOutputStream());
 			out.flush();
 			in = new ObjectInputStream(connection.getInputStream());
-			sendMessage("Connection successful");
+			Random r = new Random();
+			sendMessage(r.nextInt());
 			// 4. The two parts communicate via the input and output streams
 			do {
 				try {
@@ -43,16 +44,29 @@ public class MockServer {
 						message = (Order) message;
 						System.out.println("client>" + message);
 						if (((Order) message).getType() == Operation.CANCEL) {
+							sendMessage(((Order) message).getOrderID());
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							sendMessage(new Response(new WrappedOrder(0,
 									((Order) message).getOrderID(),
 									(Order) message, new Date()),
 									Status.CANCELED, "ok", (float) 0.0, 0,
 									new Date()));
 						} else {
-
-							Random r = new Random();
+							int orderID = r.nextInt();
+							sendMessage(orderID);
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							sendMessage(new Response(new WrappedOrder(0,
-									r.nextInt(), (Order) message, new Date()),
+									orderID, (Order) message, new Date()),
 									Status.FULLY_FILLED, "ok", (float) 1.0, 1,
 									new Date()));
 						}
