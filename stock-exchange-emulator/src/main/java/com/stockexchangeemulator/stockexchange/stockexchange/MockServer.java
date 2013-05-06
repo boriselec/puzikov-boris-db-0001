@@ -34,6 +34,12 @@ public class MockServer {
 			out = new ObjectOutputStream(connection.getOutputStream());
 			out.flush();
 			in = new ObjectInputStream(connection.getInputStream());
+			// try {
+			// Thread.sleep(10000);
+			// } catch (InterruptedException e1) {
+			// // TODO Auto-generated catch block
+			// e1.printStackTrace();
+			// }
 			Random r = new Random();
 			sendMessage(r.nextInt());
 			// 4. The two parts communicate via the input and output streams
