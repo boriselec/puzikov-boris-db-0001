@@ -5,7 +5,7 @@ import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
 
 public interface OrderingApi {
-	public int login() throws NoLoginException;
+	public void login(String loginName) throws NoLoginException;
 
 	public int sendOrder(Order order) throws BadOrderException,
 			NoLoginException;

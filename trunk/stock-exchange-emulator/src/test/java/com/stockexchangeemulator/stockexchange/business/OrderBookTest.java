@@ -22,13 +22,13 @@ public class OrderBookTest extends TestCase {
 	private WrappedOrder wrappedOrderGetTest(Operation type, int sharesCount,
 			float price, Date date) {
 
-		return new WrappedOrder(0, idCount++, new Order(0, "TEST", type,
-				sharesCount, price), date);
+		return new WrappedOrder("TEST", idCount++, new Order("Test", "TEST",
+				type, sharesCount, price), date);
 	}
 
 	private WrappedOrder wrappedOrderGetCancelTest(int orderID) {
 
-		return new WrappedOrder(0, idCount++, new Order("TEST",
+		return new WrappedOrder("TEST", idCount++, new Order("TEST",
 				Operation.CANCEL, orderID), new Date());
 	}
 

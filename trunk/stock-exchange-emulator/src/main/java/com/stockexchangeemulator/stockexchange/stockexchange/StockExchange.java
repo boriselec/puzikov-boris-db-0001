@@ -28,7 +28,7 @@ public class StockExchange {
 	private final static String[] TICKER_SYMBOLS = { "AAPL", "MCD", "IBM",
 			"MSFT", "PG" };
 	private HashMap<String, OrderBookService> serviceContainer;
-	private HashMap<Integer, ObjectOutputStream> clientOutStreamMap = new HashMap<>();
+	private HashMap<String, ObjectOutputStream> clientOutStreamMap = new HashMap<>();
 	private LinkedBlockingQueue<Response> delayedResponses = new LinkedBlockingQueue<>();
 	private int clientCount = 0;
 	private int orderCount = 0;
@@ -72,37 +72,45 @@ public class StockExchange {
 			e.printStackTrace();
 			return;
 		}
+		String message = null;
+		try {
+			message = (String) in.readObject();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		final int clientID = generateClientID();
-		clientOutStreamMap.put(clientID, out);
+		final String login = message;
+		clientOutStreamMap.put(login, out);
 
-		log.info(String.format("New client connected: clientID=%d", clientID));
-		FilledObserver observer = new FilledObserver(clientID) {
+		log.info(String.format("New client connected: login=%s", login));
+		FilledObserver observer = new FilledObserver(login) {
 			@Override
 			public void onFilled(Response response) {
-				if (clientOutStreamMap.containsKey(clientID)) {
+				if (clientOutStreamMap.containsKey(login)) {
 					log.info(String
-							.format("Send response to client: clientID=%d about order: orderID=%d",
-									clientID, response.getOrderID()));
+							.format("Send response to client: client=%s about order: orderID=%d",
+									login, response.getOrderID()));
 					sendMessage(out, response);
 				} else {
 					log.info(String
-							.format("Add delayed response to client: clientID=%d about order: orderID=%d",
-									clientID, response.getOrderID()));
+							.format("Add delayed response to client: client=%s about order: orderID=%d",
+									login, response.getOrderID()));
 					delayedResponses.add(response);
 				}
 			}
 		};
 
 		addObserverToAll(observer);
-
-		sendMessage(out, clientID);
-		listenClient(clientID, in, out, newClientSocket);
+		sendMessage(out, 0);
+		listenClient(login, in, out, newClientSocket);
 	}
 
-	private void listenClient(final Integer clientID,
-			final ObjectInputStream in, ObjectOutputStream out,
-			final Socket clientSocket) {
+	private void listenClient(final String login, final ObjectInputStream in,
+			ObjectOutputStream out, final Socket clientSocket) {
 		new Thread() {
 			public void run() {
 				while (true) {
@@ -112,7 +120,7 @@ public class StockExchange {
 						OrderVerifier orderVerifier = new OrderVerifier();
 						if (message instanceof String) {
 							if ("disconnect".equals((String) message)) {
-								disconnectClient(clientID, clientSocket);
+								disconnectClient(login, clientSocket);
 								return;
 							}
 							continue;
@@ -124,9 +132,9 @@ public class StockExchange {
 						}
 						WrappedOrder wrappedOrder;
 						if (order.getType() == Operation.CANCEL) {
-							sendMessage(clientOutStreamMap.get(clientID),
+							sendMessage(clientOutStreamMap.get(login),
 									order.getOrderID());
-							wrappedOrder = new WrappedOrder(clientID,
+							wrappedOrder = new WrappedOrder(login,
 									order.getOrderID(), order, new Date());
 
 						} else {
@@ -135,25 +143,24 @@ public class StockExchange {
 								orderVerifier
 										.verifyOrder(order, TICKER_SYMBOLS);
 							} catch (BadOrderException e) {
-								sendMessage(clientOutStreamMap.get(clientID),
-										-1);
+								sendMessage(clientOutStreamMap.get(login), -1);
 								continue;
 							}
-							sendMessage(clientOutStreamMap.get(clientID),
+							sendMessage(clientOutStreamMap.get(login),
 									newOrderID);
-							wrappedOrder = new WrappedOrder(clientID,
-									newOrderID, order, new Date());
+							wrappedOrder = new WrappedOrder(login, newOrderID,
+									order, new Date());
 						}
 						serviceContainer.get(order.getStockName()).sendOrder(
 								wrappedOrder);
 						log.info(String
-								.format("Add new order: orderID=%d from client: clientID=%d",
-										order.getOrderID(), clientID));
+								.format("Add new order: orderID=%d from client: client=%s",
+										order.getOrderID(), login));
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (SocketException closeException) {
-						disconnectClient(clientID, clientSocket);
+						disconnectClient(login, clientSocket);
 						return;
 
 					} catch (IOException e) {
@@ -165,12 +172,11 @@ public class StockExchange {
 		}.start();
 	}
 
-	private void disconnectClient(int clientID, Socket socket) {
+	private void disconnectClient(String login, Socket socket) {
 		try {
 			socket.close();
-			clientOutStreamMap.remove(clientID);
-			log.info(String
-					.format("Client disconnected: clientID=%d", clientID));
+			clientOutStreamMap.remove(login);
+			log.info(String.format("Client disconnected: client=%s", login));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
