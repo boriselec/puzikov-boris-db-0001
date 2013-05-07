@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.api.OrderingApi;
+import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
@@ -60,20 +61,22 @@ public class OrderingService implements OrderingApi {
 						} else if (response instanceof Integer)
 							responseOrderID.add((int) response);
 					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						// throw new ConnectionException(e.getMessage());
+
 					}
 				}
 			}
 		}.start();
 	}
 
-	public int sendOrder(Order order) {
+	public int sendOrder(Order order) throws BadOrderException {
 		int result = 0;
 		try {
 			outputStream.writeObject(order);
 			try {
 				result = responseOrderID.take();
+				if (result == -1)
+					throw new BadOrderException();
 			} catch (InterruptedException ignoredException) {
 
 			}

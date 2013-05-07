@@ -5,6 +5,7 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -32,6 +33,7 @@ import com.stockexchangeemulator.domain.Response;
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
+	private static Logger log = Logger.getLogger(ClientGUI.class.getName());
 	private int clientID;
 	boolean isConnected = false;
 
@@ -41,6 +43,7 @@ public class ClientGUI extends JFrame {
 				@Override
 				public void onResponse(Response response) {
 					drawResponse(response);
+					log.info("new response received");
 				}
 			});
 	private JPanel contentPane;
@@ -296,11 +299,20 @@ public class ClientGUI extends JFrame {
 			Order order = orderVerifier.getOrder(clientID, stockName,
 					operation, type, price, sharesCount);
 			clearTextFields();
-			int orderId = orderingService.sendOrder(order);
+			int orderId = 0;
+			try {
+				orderId = orderingService.sendOrder(order);
+				log.info(String.format("Sended new order: orderID=%d", orderId));
+			} catch (BadOrderException e) {
+				JOptionPane.showMessageDialog(contentPane,
+						"Cant send order to server. " + e.getMessage());
+				log.info("Failed to send order");
+			}
 			drawOrder(orderId, order);
 		} catch (BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Bad arguments: " + e.getMessage());
+			log.info("Failed to send order");
 		}
 
 	}
@@ -319,18 +331,29 @@ public class ClientGUI extends JFrame {
 		else if (dataTable.getValueAt(index, 2) == "CANCELED"
 				|| dataTable.getValueAt(index, 2) == "SEND CANCEL") {
 			JOptionPane.showMessageDialog(contentPane, "Already canceled");
+			log.info("Failed to cancel order");
 		} else if (dataTable.getValueAt(index, 2) == "FULLY_FILLED") {
 			JOptionPane.showMessageDialog(contentPane, "Already executed");
+			log.info("Failed to cancel order");
 		} else {
 
 			int orderID = Integer.parseInt((String) dataTable.getValueAt(index,
 					0));
 			String stockNameString = (String) dataTable.getValueAt(index, 1);
-			dataTable.setValueAt("SEND CANCEL", index, 2);
 			OrderVerifier orderVerifier = new OrderVerifier();
 			Order cancelOrder = orderVerifier.getCancelOrder(stockNameString,
 					orderID);
-			orderingService.sendOrder(cancelOrder);
+			log.info(String
+					.format("Send cancel for order: orderID=%d", orderID));
+			try {
+				orderingService.sendOrder(cancelOrder);
+				dataTable.setValueAt("SEND CANCEL", index, 2);
+				log.info("Send to cancel order");
+			} catch (BadOrderException e) {
+				JOptionPane.showMessageDialog(contentPane,
+						"Can't cancel order. " + e.getMessage());
+				log.info("Failed to cancel order");
+			}
 		}
 
 	}
@@ -344,6 +367,8 @@ public class ClientGUI extends JFrame {
 			loginStatusLabel.setText("Connecting...");
 			clientID = orderingService.login();
 			isConnected = true;
+			log.info(String.format("Connected to stock exchange. ClientID=%d",
+					clientID));
 			loginStatusLabel.setText("Connected. ClientID is " + clientID);
 		} catch (NoLoginException ex) {
 			loginStatusLabel.setText("Disconnected");

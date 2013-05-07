@@ -42,4 +42,24 @@ public class OrderVerifier {
 		Order result = new Order(stockName, Operation.CANCEL, orderID);
 		return result;
 	}
+
+	public void verifyOrder(Order order, String[] tickerSymbols)
+			throws BadOrderException {
+		boolean isFound = false;
+		for (String ticker : tickerSymbols)
+			if (ticker.equals(order.getStockName())) {
+				isFound = true;
+				break;
+			}
+		if (isFound == false)
+			throw new BadOrderException(String.format(
+					"Stock exchange don't trade %s ticker",
+					order.getStockName()));
+
+		if (order.getSharesCount() <= 0)
+			throw new BadOrderException("Order shares count should be positive");
+
+		if (order.getPrice() <= 0)
+			throw new BadOrderException("Order price should be positive");
+	}
 }

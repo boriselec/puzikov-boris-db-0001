@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import com.stockexchangeemulator.domain.ConstantPriceMatcher;
 import com.stockexchangeemulator.domain.InverseOrderComparator;
@@ -18,7 +17,6 @@ import com.stockexchangeemulator.domain.Status;
 import com.stockexchangeemulator.domain.WrappedOrder;
 
 public class OrderBook {
-	private static Logger log = Logger.getLogger(OrderBook.class.getName());
 	private static float DEFAULT_PRICE = (float) 100.0;
 
 	public OrderBook() {
@@ -155,7 +153,6 @@ public class OrderBook {
 		Response response = new Response(wrappedOrder, Status.PARTIALLY_FILLED,
 				"Ok", price, sharesCount, dealDate);
 		wrappedOrder.getOrder().partliallyFill(sharesCount);
-		log.info("partially filled" + wrappedOrder.getOrderID());
 		return response;
 	}
 
@@ -164,7 +161,6 @@ public class OrderBook {
 		int sharesCount = wrappedOrder.getOrder().getSharesCount();
 		Response response = new Response(wrappedOrder, Status.FULLY_FILLED,
 				"Ok", price, sharesCount, dealDate);
-		log.info("fully filled" + wrappedOrder.getOrderID());
 
 		if (wrappedOrder.getOrder().getType() == Operation.BID)
 			removeFirst(bidsOrderBook);
