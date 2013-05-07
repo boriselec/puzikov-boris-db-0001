@@ -2,16 +2,14 @@ package com.stockexchangeemulator.domain;
 
 import java.util.Comparator;
 
-public class InverseOrderComparator implements Comparator<WrappedOrder> {
+public class InverseOrderComparator implements Comparator<Order> {
 
 	@Override
-	public int compare(WrappedOrder wo1, WrappedOrder wo2) {
-		Order o1 = wo1.getOrder();
-		Order o2 = wo2.getOrder();
+	public int compare(Order o1, Order o2) {
 		if (Math.abs(o1.getPrice() - o2.getPrice()) < PriceComparator.PRICE_PRECISION)
-			if (wo1.getDate().compareTo(wo2.getDate()) != 0)
-				return wo1.getDate().compareTo(wo2.getDate());
-			else if (wo1.getOrderID() == wo2.getOrderID())
+			if (o1.getDate().compareTo(o2.getDate()) != 0)
+				return o1.getDate().compareTo(o2.getDate());
+			else if (o1.getOrderID() == o2.getOrderID())
 				return 0;
 			else
 				return 1;
