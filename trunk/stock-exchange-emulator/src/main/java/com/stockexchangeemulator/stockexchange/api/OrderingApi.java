@@ -1,16 +1,13 @@
 package com.stockexchangeemulator.stockexchange.api;
 
-import com.stockexchangeemulator.domain.Response;
-import com.stockexchangeemulator.domain.WrappedOrder;
+import com.stockexchangeemulator.domain.Order;
 
 public interface OrderingApi {
 
-	public void sendOrder(WrappedOrder order);
+	public void sendOrder(Order order);
 
 	public void addObserver(FilledObserver observer);
 
 	public void removeObserver(FilledObserver observer);
-
-	public void notifyObservers(Response response);
 
 }

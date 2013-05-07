@@ -1,6 +1,7 @@
 package com.stockexchangeemulator.domain;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class Order implements Serializable {
 
@@ -27,6 +28,8 @@ public class Order implements Serializable {
 	private float price;
 	private int previousOrderID;
 	private String login;
+	private Date date;
+	private int orderID;
 
 	public float getPrice() {
 		return price;
@@ -49,11 +52,31 @@ public class Order implements Serializable {
 	}
 
 	public int getOrderID() {
-		return previousOrderID;
+		return orderID;
 	}
 
 	public String getLogin() {
 		return login;
+	}
+
+	public Date getDate() {
+		return this.date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	public void setOrderID(int orderID) {
+		this.orderID = orderID;
+	}
+
+	public int getpreviousOrderID() {
+		return this.previousOrderID;
+	}
+
+	public void setPreviousOrderID(int orderID2) {
+		this.previousOrderID = orderID2;
 	}
 
 }

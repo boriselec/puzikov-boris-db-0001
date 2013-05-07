@@ -16,7 +16,6 @@ import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
-import com.stockexchangeemulator.domain.WrappedOrder;
 import com.stockexchangeemulator.stockexchange.api.FilledObserver;
 import com.stockexchangeemulator.stockexchange.business.OrderBookService;
 
@@ -87,7 +86,7 @@ public class StockExchange {
 		clientOutStreamMap.put(login, out);
 
 		log.info(String.format("New client connected: login=%s", login));
-		FilledObserver observer = new FilledObserver(login) {
+		FilledObserver observer = new FilledObserver(message) {
 			@Override
 			public void onFilled(Response response) {
 				if (clientOutStreamMap.containsKey(login)) {
@@ -125,20 +124,19 @@ public class StockExchange {
 							}
 							continue;
 						} else {
-							if (message instanceof Order)
+							if (message instanceof Order) {
 								order = (Order) message;
-							else
+							} else
 								continue;
 						}
-						WrappedOrder wrappedOrder;
 						if (order.getType() == Operation.CANCEL) {
 							sendMessage(clientOutStreamMap.get(login),
-									order.getOrderID());
-							wrappedOrder = new WrappedOrder(login,
-									order.getOrderID(), order, new Date());
+									order.getpreviousOrderID());
 
 						} else {
 							int newOrderID = generateOrderID();
+							order.setOrderID(newOrderID);
+							order.setDate(new Date());
 							try {
 								orderVerifier
 										.verifyOrder(order, TICKER_SYMBOLS);
@@ -148,11 +146,9 @@ public class StockExchange {
 							}
 							sendMessage(clientOutStreamMap.get(login),
 									newOrderID);
-							wrappedOrder = new WrappedOrder(login, newOrderID,
-									order, new Date());
 						}
 						serviceContainer.get(order.getStockName()).sendOrder(
-								wrappedOrder);
+								order);
 						log.info(String
 								.format("Add new order: orderID=%d from client: client=%s",
 										order.getOrderID(), login));
@@ -190,11 +186,6 @@ public class StockExchange {
 	private void addObserverToAll(FilledObserver observer) {
 		for (String ticker : TICKER_SYMBOLS)
 			serviceContainer.get(ticker).addObserver(observer);
-	}
-
-	private int generateClientID() {
-		// TODO: generate true unique
-		return clientCount++;
 	}
 
 	void sendMessage(ObjectOutputStream out, final Object response) {

@@ -374,10 +374,10 @@ public class ClientGUI extends JFrame {
 		}
 		try {
 			loginStatusLabel.setText("Connecting...");
-			String loginNameString = loginTextField.getText();
-			orderingService.login(loginNameString);
+			login = loginTextField.getText();
+			orderingService.login(login);
 			isConnected = true;
-			log.info(String.format("Connected to stock exchange. ClientID=%d",
+			log.info(String.format("Connected to stock exchange. ClientID=%s",
 					login));
 			loginStatusLabel.setText("Connected");
 		} catch (NoLoginException ex) {

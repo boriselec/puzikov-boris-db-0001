@@ -10,17 +10,17 @@ public class Response implements Serializable {
 	 */
 	private static final long serialVersionUID = -6816711724699067797L;
 
-	public Response(WrappedOrder wrappedOrder, Status status, String message,
-			float price, int sharesCount, Date date) {
-		this.login = wrappedOrder.getClientID();
+	public Response(Order order, Status status, String message, float price,
+			int sharesCount, Date date) {
+		this.login = order.getLogin();
 		this.status = status;
 		this.price = price;
 		this.tradedShares = sharesCount;
-		this.requestedShares = wrappedOrder.getOrder().getSharesCount();
+		this.requestedShares = order.getSharesCount();
 		this.message = message;
 		this.date = date;
-		this.orderID = wrappedOrder.getOrderID();
-		this.symbol = wrappedOrder.getOrder().getStockName();
+		this.orderID = order.getOrderID();
+		this.symbol = order.getStockName();
 	}
 
 	private String login;

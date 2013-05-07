@@ -1,5 +1,5 @@
 package com.stockexchangeemulator.domain;
 
 public interface PriceMatcher {
-	float match(WrappedOrder o1, WrappedOrder o2, float lastDealPrice);
+	float match(Order o1, Order o2, float lastDealPrice);
 }

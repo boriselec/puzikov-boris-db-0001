@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
+import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
-import com.stockexchangeemulator.domain.WrappedOrder;
 import com.stockexchangeemulator.stockexchange.api.FilledObserver;
 import com.stockexchangeemulator.stockexchange.api.OrderingApi;
 
@@ -15,17 +15,17 @@ public class OrderBookService implements OrderingApi {
 	private static Logger log = Logger.getLogger(OrderBook.class.getName());
 
 	public OrderBookService() {
-		queue = new LinkedBlockingQueue<WrappedOrder>();
+		queue = new LinkedBlockingQueue<Order>();
 		orderBook = new OrderBook();
 		observers = new HashMap<String, FilledObserver>();
 		runFilling();
 	}
 
-	private LinkedBlockingQueue<WrappedOrder> queue;
+	private LinkedBlockingQueue<Order> queue;
 	private OrderBook orderBook;
 	private Map<String, FilledObserver> observers;
 
-	public void sendOrder(WrappedOrder order) {
+	public void sendOrder(Order order) {
 		queue.add(order);
 	}
 
@@ -42,11 +42,11 @@ public class OrderBookService implements OrderingApi {
 	private void fillOrderFromQueue() {
 		LinkedList<Response> responses = null;
 		try {
-			WrappedOrder order = queue.take();
+			Order order = queue.take();
 			responses = orderBook.proceedOrder(order);
 			log.info(String.format(
-					"Order: orderID=%d proceeded %d responses generated", order
-							.getOrder().getOrderID(), responses.size()));
+					"Order: orderID=%d proceeded %d responses generated",
+					order.getOrderID(), responses.size()));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -63,7 +63,7 @@ public class OrderBookService implements OrderingApi {
 		observers.remove(observer);
 	}
 
-	public void notifyObservers(Response response) {
+	private void notifyObservers(Response response) {
 		observers.get(response.getLogin()).onFilled(response);
 	}
 }
