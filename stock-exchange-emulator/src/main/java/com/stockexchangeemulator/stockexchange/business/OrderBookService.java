@@ -39,11 +39,14 @@ public class OrderBookService implements OrderingApi {
 		}.start();
 	}
 
-	public void fillOrderFromQueue() {
+	private void fillOrderFromQueue() {
 		LinkedList<Response> responses = null;
 		try {
 			WrappedOrder order = queue.take();
 			responses = orderBook.proceedOrder(order);
+			log.info(String.format(
+					"Order: orderID=%d proceeded %d responses generated", order
+							.getOrder().getOrderID(), responses.size()));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
