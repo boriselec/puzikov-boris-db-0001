@@ -17,13 +17,13 @@ public class OrderBookService implements OrderingApi {
 	public OrderBookService() {
 		queue = new LinkedBlockingQueue<WrappedOrder>();
 		orderBook = new OrderBook();
-		observers = new HashMap<Integer, FilledObserver>();
+		observers = new HashMap<String, FilledObserver>();
 		runFilling();
 	}
 
 	private LinkedBlockingQueue<WrappedOrder> queue;
 	private OrderBook orderBook;
-	private Map<Integer, FilledObserver> observers;
+	private Map<String, FilledObserver> observers;
 
 	public void sendOrder(WrappedOrder order) {
 		queue.add(order);
@@ -64,6 +64,6 @@ public class OrderBookService implements OrderingApi {
 	}
 
 	public void notifyObservers(Response response) {
-		observers.get(response.getClientID()).onFilled(response);
+		observers.get(response.getLogin()).onFilled(response);
 	}
 }

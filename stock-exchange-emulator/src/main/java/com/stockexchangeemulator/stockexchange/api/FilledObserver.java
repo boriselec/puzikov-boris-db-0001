@@ -4,18 +4,18 @@ import com.stockexchangeemulator.domain.Response;
 
 public class FilledObserver {
 
-	public FilledObserver(int clientID) {
+	public FilledObserver(String clientID) {
 		this.clientID = clientID;
 	}
 
-	private int clientID;
+	private String clientID;
 
 	public void onFilled(Response response) {
 		// TODO Auto-generated method stub
 
 	}
 
-	public int getClientID() {
+	public String getClientID() {
 		return clientID;
 	}
 }

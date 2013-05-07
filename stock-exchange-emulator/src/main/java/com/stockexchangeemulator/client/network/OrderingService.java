@@ -33,16 +33,19 @@ public class OrderingService implements OrderingApi {
 		responseOrderID = new LinkedBlockingQueue<>();
 	}
 
-	public int login() throws NoLoginException {
+	public void login(String loginName) throws NoLoginException {
 		try {
+			if ("".equals(loginName))
+				throw new NoLoginException("Empty login name");
 			socket = new Socket("localhost", DEFAULT_PORT);
 			outputStream = new ObjectOutputStream(socket.getOutputStream());
 			outputStream.flush();
 			inputStream = new ObjectInputStream(socket.getInputStream());
 
+			outputStream.writeObject(loginName);
+
 			int responseClientID = (int) inputStream.readObject();
 			runRead();
-			return responseClientID;
 
 		} catch (ClassNotFoundException | IOException e) {
 			throw new NoLoginException(e.getMessage());

@@ -34,7 +34,7 @@ import com.stockexchangeemulator.domain.Response;
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
 	private static Logger log = Logger.getLogger(ClientGUI.class.getName());
-	private int clientID;
+	private String login;
 	boolean isConnected = false;
 
 	private OrderingService orderingService = new OrderingService(
@@ -61,6 +61,7 @@ public class ClientGUI extends JFrame {
 	private final JRadioButton buyRadioButton;
 	private final JRadioButton sellRadioButton;
 	private final JLabel loginStatusLabel;
+	private JTextField loginTextField;
 
 	/**
 	 * Launch the application.
@@ -94,12 +95,12 @@ public class ClientGUI extends JFrame {
 		JPanel panel = new JPanel();
 		panel.setToolTipText("");
 		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel.setBounds(10, 11, 178, 191);
+		panel.setBounds(10, 11, 203, 191);
 		contentPane.add(panel);
 		panel.setLayout(null);
 
 		symbolTextField = new JTextField();
-		symbolTextField.setBounds(54, 11, 114, 20);
+		symbolTextField.setBounds(66, 11, 127, 20);
 		panel.add(symbolTextField);
 		symbolTextField.setColumns(10);
 
@@ -109,11 +110,11 @@ public class ClientGUI extends JFrame {
 
 		limitRadioButton = new JRadioButton("Limit");
 		limitRadioButton.setSelected(true);
-		limitRadioButton.setBounds(54, 67, 47, 23);
+		limitRadioButton.setBounds(79, 67, 47, 23);
 		panel.add(limitRadioButton);
 
 		marketRadioButton = new JRadioButton("Market");
-		marketRadioButton.setBounds(108, 67, 60, 23);
+		marketRadioButton.setBounds(133, 67, 60, 23);
 		panel.add(marketRadioButton);
 
 		ButtonGroup limitOrMarketTypeGroup = new ButtonGroup();
@@ -129,12 +130,12 @@ public class ClientGUI extends JFrame {
 		panel.add(lblPrice);
 
 		priceTextField = new JTextField();
-		priceTextField.setBounds(54, 97, 114, 20);
+		priceTextField.setBounds(66, 97, 127, 20);
 		panel.add(priceTextField);
 		priceTextField.setColumns(10);
 
 		quantityTextField = new JTextField();
-		quantityTextField.setBounds(54, 128, 114, 20);
+		quantityTextField.setBounds(66, 128, 127, 20);
 		panel.add(quantityTextField);
 		quantityTextField.setColumns(10);
 
@@ -148,16 +149,16 @@ public class ClientGUI extends JFrame {
 		panel.add(submitButton);
 
 		JLabel lblOperation = new JLabel("Operation");
-		lblOperation.setBounds(10, 42, 46, 14);
+		lblOperation.setBounds(10, 42, 63, 14);
 		panel.add(lblOperation);
 
 		buyRadioButton = new JRadioButton("Buy");
 		buyRadioButton.setSelected(true);
-		buyRadioButton.setBounds(54, 38, 47, 23);
+		buyRadioButton.setBounds(79, 38, 47, 23);
 		panel.add(buyRadioButton);
 
 		sellRadioButton = new JRadioButton("Sell");
-		sellRadioButton.setBounds(108, 38, 60, 23);
+		sellRadioButton.setBounds(133, 38, 60, 23);
 		panel.add(sellRadioButton);
 
 		ButtonGroup buyOrSellTypeGroup = new ButtonGroup();
@@ -174,7 +175,7 @@ public class ClientGUI extends JFrame {
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel_1.setBounds(198, 11, 684, 451);
+		panel_1.setBounds(265, 11, 617, 451);
 		contentPane.add(panel_1);
 		panel_1.setLayout(null);
 
@@ -193,17 +194,17 @@ public class ClientGUI extends JFrame {
 		table = new JTable();
 		table.setModel(dataTable);
 		JScrollPane jScrollPane = new JScrollPane(table);
-		jScrollPane.setBounds(10, 11, 664, 395);
+		jScrollPane.setBounds(10, 11, 597, 395);
 		panel_1.add(jScrollPane);
 
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel_2.setBounds(10, 213, 178, 72);
+		panel_2.setBounds(10, 213, 203, 101);
 		contentPane.add(panel_2);
 		panel_2.setLayout(null);
 
 		loginStatusLabel = new JLabel("Disconnected");
-		loginStatusLabel.setBounds(10, 11, 158, 14);
+		loginStatusLabel.setBounds(64, 11, 139, 14);
 		panel_2.add(loginStatusLabel);
 
 		JButton loginButton = new JButton("Login");
@@ -213,8 +214,21 @@ public class ClientGUI extends JFrame {
 				loginClick();
 			}
 		});
-		loginButton.setBounds(10, 38, 158, 23);
+		loginButton.setBounds(10, 67, 158, 23);
 		panel_2.add(loginButton);
+
+		loginTextField = new JTextField();
+		loginTextField.setBounds(64, 36, 129, 20);
+		panel_2.add(loginTextField);
+		loginTextField.setColumns(10);
+
+		JLabel lblStatus = new JLabel("Status:");
+		lblStatus.setBounds(10, 11, 46, 14);
+		panel_2.add(lblStatus);
+
+		JLabel lblLogin = new JLabel("Login");
+		lblLogin.setBounds(10, 42, 46, 14);
+		panel_2.add(lblLogin);
 	}
 
 	public boolean checkConnection() {
@@ -296,18 +310,13 @@ public class ClientGUI extends JFrame {
 		String sharesCount = quantityTextField.getText();
 		try {
 			OrderVerifier orderVerifier = new OrderVerifier();
-			Order order = orderVerifier.getOrder(clientID, stockName,
-					operation, type, price, sharesCount);
+			Order order = orderVerifier.getOrder(login, stockName, operation,
+					type, price, sharesCount);
 			clearTextFields();
 			int orderId = 0;
-			try {
-				orderId = orderingService.sendOrder(order);
-				log.info(String.format("Sended new order: orderID=%d", orderId));
-			} catch (BadOrderException e) {
-				JOptionPane.showMessageDialog(contentPane,
-						"Cant send order to server. " + e.getMessage());
-				log.info("Failed to send order");
-			}
+			orderId = orderingService.sendOrder(order);
+			log.info(String.format("Sended new order: orderID=%d", orderId));
+			log.info("Failed to send order");
 			drawOrder(orderId, order);
 		} catch (BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,
@@ -365,11 +374,12 @@ public class ClientGUI extends JFrame {
 		}
 		try {
 			loginStatusLabel.setText("Connecting...");
-			clientID = orderingService.login();
+			String loginNameString = loginTextField.getText();
+			orderingService.login(loginNameString);
 			isConnected = true;
 			log.info(String.format("Connected to stock exchange. ClientID=%d",
-					clientID));
-			loginStatusLabel.setText("Connected. ClientID is " + clientID);
+					login));
+			loginStatusLabel.setText("Connected");
 		} catch (NoLoginException ex) {
 			loginStatusLabel.setText("Disconnected");
 			JOptionPane.showMessageDialog(contentPane,

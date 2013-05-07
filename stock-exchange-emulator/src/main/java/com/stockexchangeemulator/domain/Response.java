@@ -12,7 +12,7 @@ public class Response implements Serializable {
 
 	public Response(WrappedOrder wrappedOrder, Status status, String message,
 			float price, int sharesCount, Date date) {
-		this.clientID = wrappedOrder.getClientID();
+		this.login = wrappedOrder.getClientID();
 		this.status = status;
 		this.price = price;
 		this.tradedShares = sharesCount;
@@ -23,7 +23,7 @@ public class Response implements Serializable {
 		this.symbol = wrappedOrder.getOrder().getStockName();
 	}
 
-	private int clientID;
+	private String login;
 	private Status status;
 	private float price;
 	private int tradedShares;
@@ -49,8 +49,8 @@ public class Response implements Serializable {
 		return message;
 	}
 
-	public int getClientID() {
-		return clientID;
+	public String getLogin() {
+		return login;
 	}
 
 	public Date getDate() {

@@ -3,7 +3,7 @@ package com.stockexchangeemulator.domain;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 
 public class OrderVerifier {
-	public Order getOrder(int clientID, String stockName, Operation operation,
+	public Order getOrder(String login, String stockName, Operation operation,
 			String type, String priceString, String sharesCountString)
 			throws BadOrderException {
 
@@ -33,7 +33,7 @@ public class OrderVerifier {
 		}
 		if (sharesCount <= 0)
 			throw new BadOrderException("Order should hava positive quantity");
-		Order result = new Order(clientID, stockName, operation, sharesCount,
+		Order result = new Order(login, stockName, operation, sharesCount,
 				price);
 		return result;
 	}
@@ -59,7 +59,8 @@ public class OrderVerifier {
 		if (order.getSharesCount() <= 0)
 			throw new BadOrderException("Order shares count should be positive");
 
-		if (order.getPrice() <= 0)
+		if (order.getPrice() <= 0
+				&& order.getPrice() != Float.NEGATIVE_INFINITY)
 			throw new BadOrderException("Order price should be positive");
 	}
 }
