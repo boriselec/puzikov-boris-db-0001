@@ -26,10 +26,11 @@ import com.stockexchangeemulator.client.network.OrderingService;
 import com.stockexchangeemulator.client.service.api.OrderObserver;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
-import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.TradeOperation;
+import com.stockexchangeemulator.domain.TradeOrder;
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
@@ -239,7 +240,7 @@ public class ClientGUI extends JFrame {
 			return true;
 	}
 
-	public void drawOrder(int orderID, Order order) {
+	public void drawOrder(int orderID, TradeOrder order) {
 		String orderIDString = ((Integer) orderID).toString();
 		String symbolsString = order.getStockName();
 		String statusString = "SEND";
@@ -302,16 +303,16 @@ public class ClientGUI extends JFrame {
 
 	private void sendOrderClick() {
 		String stockName = symbolTextField.getText();
-		Operation operation = (buyRadioButton.getSelectedObjects() != null) ? Operation.BID
-				: Operation.OFFER;
-		String type = (limitRadioButton.getSelectedObjects() != null) ? "limit"
+		TradeOperation type = (buyRadioButton.getSelectedObjects() != null) ? TradeOperation.BID
+				: TradeOperation.OFFER;
+		String limitOrMarket = (limitRadioButton.getSelectedObjects() != null) ? "limit"
 				: "market";
 		String price = priceTextField.getText();
 		String sharesCount = quantityTextField.getText();
 		try {
 			OrderVerifier orderVerifier = new OrderVerifier();
-			Order order = orderVerifier.getOrder(login, stockName, operation,
-					type, price, sharesCount);
+			TradeOrder order = orderVerifier.getTradeOrder(login, stockName,
+					type, limitOrMarket, price, sharesCount);
 			clearTextFields();
 			int orderId = 0;
 			orderId = orderingService.sendOrder(order);
@@ -350,8 +351,8 @@ public class ClientGUI extends JFrame {
 					0));
 			String stockNameString = (String) dataTable.getValueAt(index, 1);
 			OrderVerifier orderVerifier = new OrderVerifier();
-			Order cancelOrder = orderVerifier.getCancelOrder(stockNameString,
-					orderID);
+			Order cancelOrder = orderVerifier.getCancelOrder(login,
+					stockNameString, orderID);
 			log.info(String
 					.format("Send cancel for order: orderID=%d", orderID));
 			try {

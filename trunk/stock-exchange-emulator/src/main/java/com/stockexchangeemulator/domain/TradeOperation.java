@@ -1,5 +1,5 @@
 package com.stockexchangeemulator.domain;
 
-public enum Operation {
-	OFFER, BID, CANCEL,
+public enum TradeOperation {
+	OFFER, BID,
 }

@@ -5,16 +5,18 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
+import com.stockexchangeemulator.domain.CancelOrder;
 import com.stockexchangeemulator.domain.ConstantPriceMatcher;
 import com.stockexchangeemulator.domain.InverseOrderComparator;
 import com.stockexchangeemulator.domain.LastPriceMatcher;
-import com.stockexchangeemulator.domain.Operation;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderComparator;
 import com.stockexchangeemulator.domain.PriceComparator;
 import com.stockexchangeemulator.domain.PriceMatcher;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.Status;
+import com.stockexchangeemulator.domain.TradeOperation;
+import com.stockexchangeemulator.domain.TradeOrder;
 
 public class OrderBook {
 	private static float DEFAULT_PRICE = (float) 100.0;
@@ -32,48 +34,48 @@ public class OrderBook {
 		return (float) 0.0;
 	}
 
-	private TreeSet<Order> bidsOrderBook;
-	private TreeSet<Order> offersOrderBook;
+	private TreeSet<TradeOrder> bidsOrderBook;
+	private TreeSet<TradeOrder> offersOrderBook;
 
 	private PriceMatcher mainMatcher;
 	private PriceMatcher startupMatcher;
 	private float lastPrice = DEFAULT_PRICE;
 
 	public LinkedList<Response> proceedOrder(Order order) {
-		if (order.getType() == Operation.CANCEL) {
-			return removeOrder(order);
+		if (order instanceof CancelOrder) {
+			return removeOrder((CancelOrder) order);
 		} else {
-			addOrder(order);
+			addOrder((TradeOrder) order);
 			return fillOrders();
 		}
 	}
 
-	private LinkedList<Response> removeOrder(Order cancelOrder) {
+	private LinkedList<Response> removeOrder(CancelOrder cancelOrder) {
 		LinkedList<Response> response = new LinkedList<>();
-		int opderID = cancelOrder.getpreviousOrderID();
+		int opderID = cancelOrder.getCancelingOrderID();
 
 		for (Order order : bidsOrderBook) {
-			if (order.getOrderID() == opderID) {
+			if (order.getCancelingOrderID() == opderID) {
 				bidsOrderBook.remove(order);
 				response.add(new Response(order, Status.CANCELED,
-						"Order canceled", 0, 0, null));
+						"Order canceled", 0, 0, new Date()));
 				return response;
 			}
 		}
 		for (Order order : offersOrderBook) {
-			if (order.getOrderID() == opderID) {
+			if (order.getCancelingOrderID() == opderID) {
 				offersOrderBook.remove(order);
 				response.add(new Response(order, Status.CANCELED,
-						"Order canceled", 0, 0, null));
+						"Order canceled", 0, 0, new Date()));
 				return response;
 			}
 		}
 		response.add(new Response(cancelOrder, Status.ERROR, "Can't cancel", 0,
-				0, null));
+				0, new Date()));
 		return response;
 	}
 
-	private void addOrder(Order order) {
+	private void addOrder(TradeOrder order) {
 		switch (order.getType()) {
 
 		case BID:
@@ -88,8 +90,8 @@ public class OrderBook {
 		}
 	}
 
-	private void removeFirst(TreeSet<Order> book) {
-		Iterator<Order> iterator = book.iterator();
+	private void removeFirst(TreeSet<TradeOrder> book) {
+		Iterator<TradeOrder> iterator = book.iterator();
 		if (iterator.hasNext()) {
 			iterator.next();
 			iterator.remove();
@@ -100,15 +102,15 @@ public class OrderBook {
 		LinkedList<Response> responses = new LinkedList<>();
 
 		while (true) {
-			Iterator<Order> bidIterator = bidsOrderBook.iterator();
-			Iterator<Order> offerIterator = offersOrderBook.iterator();
+			Iterator<TradeOrder> bidIterator = bidsOrderBook.iterator();
+			Iterator<TradeOrder> offerIterator = offersOrderBook.iterator();
 			if (bidsOrderBook.size() == 0 || offersOrderBook.size() == 0)
 				break;
 
-			Order bid = bidIterator.next();
+			TradeOrder bid = bidIterator.next();
 			float bidPrice = bid.getPrice();
 
-			Order offer = offerIterator.next();
+			TradeOrder offer = offerIterator.next();
 			float offerPrice = offer.getPrice();
 
 			if (PriceComparator.match(offerPrice, bidPrice)) {
@@ -123,7 +125,7 @@ public class OrderBook {
 		return responses;
 	}
 
-	private LinkedList<Response> fill(Order order1, Order order2,
+	private LinkedList<Response> fill(TradeOrder order1, TradeOrder order2,
 			float dealPrice) {
 		LinkedList<Response> responses = new LinkedList<>();
 		int order1SharesCount = order1.getSharesCount();
@@ -147,7 +149,8 @@ public class OrderBook {
 		return null;
 	}
 
-	private Response partiallyFill(Order order, float price, int sharesCount) {
+	private Response partiallyFill(TradeOrder order, float price,
+			int sharesCount) {
 		Date dealDate = new Date();
 		Response response = new Response(order, Status.PARTIALLY_FILLED, "Ok",
 				price, sharesCount, dealDate);
@@ -155,15 +158,15 @@ public class OrderBook {
 		return response;
 	}
 
-	private Response fullyFill(Order order, float price) {
+	private Response fullyFill(TradeOrder order, float price) {
 		Date dealDate = new Date();
 		int sharesCount = order.getSharesCount();
 		Response response = new Response(order, Status.FULLY_FILLED, "Ok",
 				price, sharesCount, dealDate);
 
-		if (order.getType() == Operation.BID)
+		if (order.getType() == TradeOperation.BID)
 			removeFirst(bidsOrderBook);
-		else
+		else if (order.getType() == TradeOperation.OFFER)
 			removeFirst(offersOrderBook);
 		return response;
 	}

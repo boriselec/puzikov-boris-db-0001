@@ -19,7 +19,7 @@ public class Response implements Serializable {
 		this.requestedShares = order.getSharesCount();
 		this.message = message;
 		this.date = date;
-		this.orderID = order.getOrderID();
+		this.orderID = order.getCancelingOrderID();
 		this.symbol = order.getStockName();
 	}
 
