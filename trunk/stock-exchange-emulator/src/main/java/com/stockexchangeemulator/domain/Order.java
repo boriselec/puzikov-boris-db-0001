@@ -33,11 +33,11 @@ public abstract class Order implements Serializable {
 		this.date = date;
 	}
 
-	public int getSharesCount() {
-		return 0;
+	public int getCancelingOrderID() {
+		return this.orderID;
 	}
 
-	public int getCancelingOrderID() {
+	public int getOrderID() {
 		return this.orderID;
 	}
 

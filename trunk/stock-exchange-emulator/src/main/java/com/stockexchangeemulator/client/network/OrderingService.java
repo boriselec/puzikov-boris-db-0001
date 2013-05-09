@@ -44,10 +44,9 @@ public class OrderingService implements OrderingApi {
 
 			outputStream.writeObject(loginName);
 
-			int responseClientID = (int) inputStream.readObject();
 			runRead();
 
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (IOException e) {
 			throw new NoLoginException(e.getMessage());
 		}
 	}

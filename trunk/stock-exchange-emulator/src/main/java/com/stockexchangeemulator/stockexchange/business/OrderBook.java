@@ -1,6 +1,5 @@
 package com.stockexchangeemulator.stockexchange.business;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
@@ -54,24 +53,23 @@ public class OrderBook {
 		LinkedList<Response> response = new LinkedList<>();
 		int opderID = cancelOrder.getCancelingOrderID();
 
-		for (Order order : bidsOrderBook) {
+		for (TradeOrder order : bidsOrderBook) {
 			if (order.getCancelingOrderID() == opderID) {
 				bidsOrderBook.remove(order);
 				response.add(new Response(order, Status.CANCELED,
-						"Order canceled", 0, 0, new Date()));
+						"Order canceled"));
 				return response;
 			}
 		}
-		for (Order order : offersOrderBook) {
+		for (TradeOrder order : offersOrderBook) {
 			if (order.getCancelingOrderID() == opderID) {
 				offersOrderBook.remove(order);
 				response.add(new Response(order, Status.CANCELED,
-						"Order canceled", 0, 0, new Date()));
+						"Order canceled"));
 				return response;
 			}
 		}
-		response.add(new Response(cancelOrder, Status.ERROR, "Can't cancel", 0,
-				0, new Date()));
+		response.add(new Response(cancelOrder, "Can't cancel. No such order."));
 		return response;
 	}
 
@@ -151,18 +149,14 @@ public class OrderBook {
 
 	private Response partiallyFill(TradeOrder order, float price,
 			int sharesCount) {
-		Date dealDate = new Date();
-		Response response = new Response(order, Status.PARTIALLY_FILLED, "Ok",
-				price, sharesCount, dealDate);
-		order.partliallyFill(sharesCount);
+		order.partliallyFill(price, sharesCount);
+		Response response = new Response(order, Status.PARTIALLY_FILLED, "Ok");
 		return response;
 	}
 
 	private Response fullyFill(TradeOrder order, float price) {
-		Date dealDate = new Date();
-		int sharesCount = order.getSharesCount();
-		Response response = new Response(order, Status.FULLY_FILLED, "Ok",
-				price, sharesCount, dealDate);
+		order.fullyFill(price);
+		Response response = new Response(order, Status.FULLY_FILLED, "Ok");
 
 		if (order.getType() == TradeOperation.BID)
 			removeFirst(bidsOrderBook);
