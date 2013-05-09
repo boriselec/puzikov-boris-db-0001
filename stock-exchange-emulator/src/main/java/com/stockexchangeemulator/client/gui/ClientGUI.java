@@ -29,6 +29,7 @@ import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.Status;
 import com.stockexchangeemulator.domain.TradeOperation;
 import com.stockexchangeemulator.domain.TradeOrder;
 
@@ -246,7 +247,7 @@ public class ClientGUI extends JFrame {
 		String statusString = "SEND";
 		String quantityString = ((Integer) order.getSharesCount()).toString();
 		String tradedString = "0";
-		String dealPriceString = "0";
+		String dealPriceString = "NaN";
 		String typeString = order.getType().toString();
 		String priceString;
 		if ((Float) order.getPrice() == Float.POSITIVE_INFINITY
@@ -269,28 +270,23 @@ public class ClientGUI extends JFrame {
 			JOptionPane.showMessageDialog(contentPane, "Bad responce received");
 			return;
 		}
-
 		String statusString = response.getStatus().toString();
 		String dateString = response.getDate().toString();
 
-		int oldTradedShares = Integer.parseInt((String) dataTable.getValueAt(
-				index, 4));
-		float oldPrice = Float.parseFloat((String) dataTable.getValueAt(index,
-				5));
-		int newDealTradedShares = (Integer) response.getTradedShares();
-		float newDealPrice = (Float) response.getPrice();
+		if (response.getStatus() == Status.CANCELED) {
 
-		int newTradedShares = oldTradedShares + newDealTradedShares;
-		float newPrice = (float) (oldTradedShares * oldPrice + newDealTradedShares
-				* newDealPrice)
-				/ (oldTradedShares + newDealTradedShares);
-		String tradedShares = ((Integer) newTradedShares).toString();
-		String priceString = ((Float) newPrice).toString();
+			dataTable.setValueAt(statusString, index, 2);
 
-		dataTable.setValueAt(statusString, index, 2);
-		dataTable.setValueAt(tradedShares, index, 4);
-		dataTable.setValueAt(priceString, index, 5);
-		dataTable.setValueAt(dateString, index, 8);
+		} else {
+
+			int tradedShares = response.getTradedShares();
+			float priceString = response.getDealPrice();
+
+			dataTable.setValueAt(statusString, index, 2);
+			dataTable.setValueAt(tradedShares, index, 4);
+			dataTable.setValueAt(priceString, index, 5);
+			dataTable.setValueAt(dateString, index, 8);
+		}
 	}
 
 	private int getOrderIndex(int orderID) {

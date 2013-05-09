@@ -4,19 +4,34 @@ public class TradeOrder extends Order {
 	private static final long serialVersionUID = 2584635612280871492L;
 
 	private TradeOperation type;
-	private int sharesCount;
+	private int requestedSharesCount;
+	private int tradedSharesCount;
 	private float price;
+	private float meanDealPrice;
 
 	public TradeOrder(String login, String stockName, TradeOperation type,
 			int sharesCount, float price) {
 		super(login, stockName);
 		this.type = type;
-		this.sharesCount = sharesCount;
+		this.requestedSharesCount = sharesCount;
+		this.tradedSharesCount = 0;
 		this.price = price;
+		this.meanDealPrice = 0;
 	}
 
-	public void partliallyFill(int amount) {
-		sharesCount -= amount;
+	public void fullyFill(float price) {
+		int amount = requestedSharesCount - tradedSharesCount;
+		this.meanDealPrice = (price * amount + this.meanDealPrice
+				* tradedSharesCount)
+				/ (amount + this.tradedSharesCount);
+		this.tradedSharesCount = this.requestedSharesCount;
+	}
+
+	public void partliallyFill(float price, int amount) {
+		this.meanDealPrice = (price * amount + this.meanDealPrice
+				* tradedSharesCount)
+				/ (amount + this.tradedSharesCount);
+		this.tradedSharesCount += amount;
 	}
 
 	public TradeOperation getType() {
@@ -24,11 +39,19 @@ public class TradeOrder extends Order {
 	}
 
 	public int getSharesCount() {
-		return sharesCount;
+		return this.requestedSharesCount - this.tradedSharesCount;
 	}
 
 	public float getPrice() {
 		return price;
+	}
+
+	public int getTradedSharesCount() {
+		return tradedSharesCount;
+	}
+
+	public float getMeanDealPrice() {
+		return meanDealPrice;
 	}
 
 }

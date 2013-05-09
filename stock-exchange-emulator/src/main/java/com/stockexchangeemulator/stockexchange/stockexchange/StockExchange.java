@@ -105,7 +105,6 @@ public class StockExchange {
 		};
 
 		addObserverToAll(observer);
-		sendMessage(out, 0);
 		listenClient(login, in, out, newClientSocket);
 	}
 
