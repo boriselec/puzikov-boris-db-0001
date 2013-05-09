@@ -2,14 +2,14 @@ package com.stockexchangeemulator.domain;
 
 import java.util.Comparator;
 
-public class OrderComparator implements Comparator<Order> {
+public class OrderComparator implements Comparator<TradeOrder> {
 
 	@Override
-	public int compare(Order o1, Order o2) {
+	public int compare(TradeOrder o1, TradeOrder o2) {
 		if (Math.abs(o1.getPrice() - o2.getPrice()) < PriceComparator.PRICE_PRECISION)
 			if (o1.getDate().compareTo(o2.getDate()) != 0)
 				return o1.getDate().compareTo(o2.getDate());
-			else if (o1.getOrderID() == o2.getOrderID())
+			else if (o1.getCancelingOrderID() == o2.getCancelingOrderID())
 				return 0;
 			else
 				return 1;

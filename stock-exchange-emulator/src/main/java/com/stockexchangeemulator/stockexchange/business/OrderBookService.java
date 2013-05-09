@@ -46,7 +46,7 @@ public class OrderBookService implements OrderingApi {
 			responses = orderBook.proceedOrder(order);
 			log.info(String.format(
 					"Order: orderID=%d proceeded %d responses generated",
-					order.getOrderID(), responses.size()));
+					order.getCancelingOrderID(), responses.size()));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

@@ -3,9 +3,9 @@ package com.stockexchangeemulator.domain;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 
 public class OrderVerifier {
-	public Order getOrder(String login, String stockName, Operation operation,
-			String type, String priceString, String sharesCountString)
-			throws BadOrderException {
+	public TradeOrder getTradeOrder(String login, String stockName,
+			TradeOperation operation, String type, String priceString,
+			String sharesCountString) throws BadOrderException {
 
 		if ("".equals(stockName))
 			throw new BadOrderException("Wrong stock name");
@@ -21,7 +21,7 @@ public class OrderVerifier {
 				throw new BadOrderException(
 						"Limit order should hava positive price");
 		} else {
-			price = (operation == Operation.BID) ? Float.POSITIVE_INFINITY
+			price = (operation == TradeOperation.BID) ? Float.POSITIVE_INFINITY
 					: Float.NEGATIVE_INFINITY;
 		}
 
@@ -33,17 +33,18 @@ public class OrderVerifier {
 		}
 		if (sharesCount <= 0)
 			throw new BadOrderException("Order should hava positive quantity");
-		Order result = new Order(login, stockName, operation, sharesCount,
-				price);
+		TradeOrder result = new TradeOrder(login, stockName, operation,
+				sharesCount, price);
 		return result;
 	}
 
-	public Order getCancelOrder(String stockName, int orderID) {
-		Order result = new Order(stockName, Operation.CANCEL, orderID);
+	public CancelOrder getCancelOrder(String login, String stockName,
+			int orderID) {
+		CancelOrder result = new CancelOrder(login, stockName, orderID);
 		return result;
 	}
 
-	public void verifyOrder(Order order, String[] tickerSymbols)
+	public void verifyTradeOrder(TradeOrder order, String[] tickerSymbols)
 			throws BadOrderException {
 		boolean isFound = false;
 		for (String ticker : tickerSymbols)

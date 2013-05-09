@@ -12,10 +12,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
-import com.stockexchangeemulator.domain.Operation;
+import com.stockexchangeemulator.domain.CancelOrder;
 import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.TradeOrder;
 import com.stockexchangeemulator.stockexchange.api.FilledObserver;
 import com.stockexchangeemulator.stockexchange.business.OrderBookService;
 
@@ -129,17 +130,18 @@ public class StockExchange {
 							} else
 								continue;
 						}
-						if (order.getType() == Operation.CANCEL) {
+						if (order instanceof CancelOrder) {
+							order.setDate(new Date());
 							sendMessage(clientOutStreamMap.get(login),
-									order.getpreviousOrderID());
+									order.getCancelingOrderID());
 
 						} else {
 							int newOrderID = generateOrderID();
 							order.setOrderID(newOrderID);
 							order.setDate(new Date());
 							try {
-								orderVerifier
-										.verifyOrder(order, TICKER_SYMBOLS);
+								orderVerifier.verifyTradeOrder(
+										(TradeOrder) order, TICKER_SYMBOLS);
 							} catch (BadOrderException e) {
 								sendMessage(clientOutStreamMap.get(login), -1);
 								continue;
@@ -151,7 +153,7 @@ public class StockExchange {
 								order);
 						log.info(String
 								.format("Add new order: orderID=%d from client: client=%s",
-										order.getOrderID(), login));
+										order.getCancelingOrderID(), login));
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

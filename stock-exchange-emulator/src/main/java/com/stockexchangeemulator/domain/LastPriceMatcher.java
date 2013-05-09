@@ -3,7 +3,7 @@ package com.stockexchangeemulator.domain;
 public class LastPriceMatcher implements PriceMatcher {
 
 	@Override
-	public float match(Order o1, Order o2, float lastDealPrice) {
+	public float match(TradeOrder o1, TradeOrder o2, float lastDealPrice) {
 		boolean isMarketBoth = (isMarket(o1) && isMarket(o2));
 		boolean isMarketOne = (isMarket(o1) || isMarket(o2));
 		if (isMarketBoth == true)
@@ -17,7 +17,7 @@ public class LastPriceMatcher implements PriceMatcher {
 					: o2.getPrice();
 	}
 
-	private boolean isMarket(Order order) {
+	private boolean isMarket(TradeOrder order) {
 		return (order.getPrice() == Float.POSITIVE_INFINITY || order.getPrice() == Float.NEGATIVE_INFINITY);
 	}
 
