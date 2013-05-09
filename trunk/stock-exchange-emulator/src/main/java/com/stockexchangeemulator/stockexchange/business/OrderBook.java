@@ -13,6 +13,7 @@ import com.stockexchangeemulator.domain.OrderComparator;
 import com.stockexchangeemulator.domain.PriceComparator;
 import com.stockexchangeemulator.domain.PriceMatcher;
 import com.stockexchangeemulator.domain.Response;
+import com.stockexchangeemulator.domain.ResponseManager;
 import com.stockexchangeemulator.domain.Status;
 import com.stockexchangeemulator.domain.TradeOperation;
 import com.stockexchangeemulator.domain.TradeOrder;
@@ -26,6 +27,7 @@ public class OrderBook {
 
 		this.startupMatcher = new ConstantPriceMatcher(getAveragePrice());
 		this.mainMatcher = new LastPriceMatcher();
+		this.responseManager = new ResponseManager();
 	}
 
 	private float getAveragePrice() {
@@ -39,6 +41,8 @@ public class OrderBook {
 	private PriceMatcher mainMatcher;
 	private PriceMatcher startupMatcher;
 	private float lastPrice = DEFAULT_PRICE;
+
+	private ResponseManager responseManager;
 
 	public LinkedList<Response> proceedOrder(Order order) {
 		if (order instanceof CancelOrder) {
@@ -56,20 +60,19 @@ public class OrderBook {
 		for (TradeOrder order : bidsOrderBook) {
 			if (order.getCancelingOrderID() == opderID) {
 				bidsOrderBook.remove(order);
-				response.add(new Response(order, Status.CANCELED,
-						"Order canceled"));
+				response.add(responseManager.createCancelingResponse(order));
 				return response;
 			}
 		}
 		for (TradeOrder order : offersOrderBook) {
 			if (order.getCancelingOrderID() == opderID) {
 				offersOrderBook.remove(order);
-				response.add(new Response(order, Status.CANCELED,
-						"Order canceled"));
+				response.add(responseManager.createCancelingResponse(order));
 				return response;
 			}
 		}
-		response.add(new Response(cancelOrder, "Can't cancel. No such order."));
+		response.add(responseManager.createErrorResponse(cancelOrder,
+				Status.ERROR));
 		return response;
 	}
 
@@ -116,7 +119,8 @@ public class OrderBook {
 				lastPrice = dealPrice;
 
 				LinkedList<Response> dealResponses = fill(bid, offer, dealPrice);
-				spliceResponcesWithSameOrderID(responses, dealResponses);
+				responseManager.spliceResponcesWithSameOrderID(responses,
+						dealResponses);
 			} else
 				break;
 		}
@@ -150,13 +154,15 @@ public class OrderBook {
 	private Response partiallyFill(TradeOrder order, float price,
 			int sharesCount) {
 		order.partliallyFill(price, sharesCount);
-		Response response = new Response(order, Status.PARTIALLY_FILLED, "Ok");
+		Response response = responseManager.createFilledResponse(order,
+				Status.PARTIALLY_FILLED);
 		return response;
 	}
 
 	private Response fullyFill(TradeOrder order, float price) {
 		order.fullyFill(price);
-		Response response = new Response(order, Status.FULLY_FILLED, "Ok");
+		Response response = responseManager.createFilledResponse(order,
+				Status.FULLY_FILLED);
 
 		if (order.getType() == TradeOperation.BID)
 			removeFirst(bidsOrderBook);
@@ -165,16 +171,4 @@ public class OrderBook {
 		return response;
 	}
 
-	private void spliceResponcesWithSameOrderID(LinkedList<Response> responses,
-			LinkedList<Response> dealResponses) {
-		l: for (Response response : dealResponses) {
-			for (Response oldResponse : responses) {
-				if (oldResponse.getOrderID() == response.getOrderID()) {
-					oldResponse.splice(response);
-					continue l;
-				}
-			}
-			responses.add(response);
-		}
-	}
 }

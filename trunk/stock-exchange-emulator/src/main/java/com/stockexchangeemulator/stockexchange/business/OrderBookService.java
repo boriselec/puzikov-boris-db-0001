@@ -56,11 +56,11 @@ public class OrderBookService implements OrderingApi {
 	}
 
 	public void addObserver(FilledObserver observer) {
-		observers.put(observer.getClientID(), observer);
+		observers.put(observer.getClientLogin(), observer);
 	}
 
-	public void removeObserver(FilledObserver observer) {
-		observers.remove(observer);
+	public void removeObserver(String login) {
+		observers.remove(login);
 	}
 
 	private void notifyObservers(Response response) {

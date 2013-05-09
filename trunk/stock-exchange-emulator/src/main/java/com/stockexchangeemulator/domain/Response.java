@@ -10,7 +10,7 @@ public class Response implements Serializable {
 	 */
 	private static final long serialVersionUID = -6816711724699067797L;
 
-	public Response(TradeOrder order, Status status, String message) {
+	public Response(TradeOrder order, Status status) {
 		this.login = order.getLogin();
 		this.orderID = order.getOrderID();
 		this.status = status;
@@ -18,9 +18,9 @@ public class Response implements Serializable {
 		this.dealPrice = order.getMeanDealPrice();
 		this.requestedShares = order.getSharesCount();
 		this.tradedShares = order.getTradedSharesCount();
-		this.message = message;
 		this.date = new Date();
 		this.symbol = order.getStockName();
+		this.operation = order.getType();
 	}
 
 	public Response(Order order, String errorMessage) {
@@ -38,6 +38,7 @@ public class Response implements Serializable {
 	private Date date;
 	private int orderID;
 	private String symbol;
+	private TradeOperation operation;
 
 	public Status getStatus() {
 		return status;
@@ -84,6 +85,10 @@ public class Response implements Serializable {
 
 	public float getDealPrice() {
 		return dealPrice;
+	}
+
+	public TradeOperation getTradeOperation() {
+		return operation;
 	}
 
 }
