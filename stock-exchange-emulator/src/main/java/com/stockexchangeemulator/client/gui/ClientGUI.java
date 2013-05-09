@@ -44,6 +44,9 @@ public class ClientGUI extends JFrame {
 
 				@Override
 				public void onResponse(Response response) {
+					if (response.getStatus() == Status.ERROR)
+						JOptionPane.showMessageDialog(contentPane,
+								response.getMessage());
 					drawResponse(response);
 					log.info("new response received");
 				}
@@ -242,56 +245,45 @@ public class ClientGUI extends JFrame {
 	}
 
 	public void drawOrder(int orderID, TradeOrder order) {
-		String orderIDString = ((Integer) orderID).toString();
-		String symbolsString = order.getStockName();
-		String statusString = "SEND";
-		String quantityString = ((Integer) order.getSharesCount()).toString();
-		String tradedString = "0";
-		String dealPriceString = "NaN";
-		String typeString = order.getType().toString();
-		String priceString;
-		if ((Float) order.getPrice() == Float.POSITIVE_INFINITY
-				|| (Float) order.getPrice() == Float.NEGATIVE_INFINITY)
-			priceString = "MARKET";
-		else
-			priceString = ((Float) order.getPrice()).toString();
-		String dateString = new Date().toString();
-		dataTable.addRow(new Object[] { orderIDString, symbolsString,
-				statusString, quantityString, tradedString, dealPriceString,
-				typeString, priceString, dateString });
-
+		drawRaw(orderID, order.getStockName(), Status.SEND,
+				order.getSharesCount(), 0, Float.NaN, order.getType(),
+				order.getPrice(), order.getDate());
 	}
 
 	public void drawResponse(Response response) {
 		int index;
 		try {
 			index = getOrderIndex(response.getOrderID());
+			dataTable.removeRow(index);
 		} catch (IllegalArgumentException e) {
-			JOptionPane.showMessageDialog(contentPane, "Bad responce received");
-			return;
+			JOptionPane.showMessageDialog(contentPane, String.format(
+					"Delayed responce received: orderID=%d",
+					response.getOrderID()));
 		}
-		String statusString = response.getStatus().toString();
-		String dateString = response.getDate().toString();
+		drawRaw(response.getOrderID(), response.getSymbol(),
+				response.getStatus(), response.getRequestedShares(),
+				response.getTradedShares(), response.getDealPrice(),
+				response.getTradeOperation(), response.getPrice(),
+				response.getDate());
+	}
 
-		if (response.getStatus() == Status.CANCELED) {
+	public void drawRaw(int orderID, String stock, Status status, int quantity,
+			int tradedShares, float price, TradeOperation type, float limit,
+			Date date) {
 
-			dataTable.setValueAt(statusString, index, 2);
-
-		} else {
-
-			int tradedShares = response.getTradedShares();
-			float priceString = response.getDealPrice();
-
-			dataTable.setValueAt(statusString, index, 2);
-			dataTable.setValueAt(tradedShares, index, 4);
-			dataTable.setValueAt(priceString, index, 5);
-			dataTable.setValueAt(dateString, index, 8);
-		}
+		String limitString;
+		if (limit == Float.POSITIVE_INFINITY
+				|| limit == Float.NEGATIVE_INFINITY)
+			limitString = "MARKET";
+		else
+			limitString = ((Float) price).toString();
+		dataTable.addRow(new Object[] { orderID, stock, status, quantity,
+				tradedShares, price, type, limitString, date });
 	}
 
 	private int getOrderIndex(int orderID) {
 		for (int i = 0; i < dataTable.getRowCount(); i++) {
-			if (Integer.parseInt((String) dataTable.getValueAt(i, 0)) == orderID)
+			if ((Integer) dataTable.getValueAt(i, 0) == orderID)
 				return i;
 		}
 		throw new IllegalArgumentException();
@@ -313,7 +305,6 @@ public class ClientGUI extends JFrame {
 			int orderId = 0;
 			orderId = orderingService.sendOrder(order);
 			log.info(String.format("Sended new order: orderID=%d", orderId));
-			log.info("Failed to send order");
 			drawOrder(orderId, order);
 		} catch (BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,

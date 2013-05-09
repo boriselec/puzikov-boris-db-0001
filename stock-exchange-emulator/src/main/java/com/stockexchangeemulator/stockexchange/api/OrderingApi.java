@@ -8,6 +8,6 @@ public interface OrderingApi {
 
 	public void addObserver(FilledObserver observer);
 
-	public void removeObserver(FilledObserver observer);
+	public void removeObserver(String login);
 
 }

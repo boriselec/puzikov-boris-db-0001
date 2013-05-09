@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 import java.util.logging.Logger;
 
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
@@ -18,38 +18,23 @@ import com.stockexchangeemulator.domain.OrderVerifier;
 import com.stockexchangeemulator.domain.Response;
 import com.stockexchangeemulator.domain.TradeOrder;
 import com.stockexchangeemulator.stockexchange.api.FilledObserver;
-import com.stockexchangeemulator.stockexchange.business.OrderBookService;
+import com.stockexchangeemulator.stockexchange.business.ServiceContainer;
 
 public class StockExchange {
 	private static Logger log = Logger.getLogger(StockExchange.class.getName());
 	private ServerSocket serverSocket;
 	private final static int DEFAULT_PORT = 2006;
 	private static final int DEFAULT_QUEUE_LENGTH = 100;
-	private final static String[] TICKER_SYMBOLS = { "AAPL", "MCD", "IBM",
-			"MSFT", "PG" };
-	private HashMap<String, OrderBookService> serviceContainer;
+	private ServiceContainer serviceContainer;
 	private HashMap<String, ObjectOutputStream> clientOutStreamMap = new HashMap<>();
-	private LinkedBlockingQueue<Response> delayedResponses = new LinkedBlockingQueue<>();
-	private int clientCount = 0;
 	private int orderCount = 0;
 
-	private HashMap<String, OrderBookService> createServiceContainer(
-			String[] tickers) {
-		HashMap<String, OrderBookService> result = new HashMap<String, OrderBookService>();
-
-		for (String ticker : tickers) {
-			result.put(ticker, new OrderBookService());
-		}
-		return result;
+	private synchronized int generateOrderID() {
+		return orderCount++;
 	}
 
-	public StockExchange() {
-		serviceContainer = createServiceContainer(TICKER_SYMBOLS);
-	}
-
-	public static void main(String[] args) throws IOException {
-		StockExchange stockExchange = new StockExchange();
-		stockExchange.runServer();
+	public StockExchange(ServiceContainer container) {
+		this.serviceContainer = container;
 	}
 
 	private void runServer() throws IOException {
@@ -63,27 +48,65 @@ public class StockExchange {
 
 	private void createNewClient(Socket newClientSocket) {
 		final ObjectOutputStream out;
-		ObjectInputStream in;
+		final ObjectInputStream in;
 		try {
 			in = new ObjectInputStream(newClientSocket.getInputStream());
 			out = new ObjectOutputStream(newClientSocket.getOutputStream());
 			out.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.warning("Unable to create connection: " + e.getMessage());
+			try {
+				newClientSocket.close();
+			} catch (IOException e1) {
+				log.warning("Unable to close connection: " + e1.getMessage());
+			}
 			return;
 		}
 		String message = null;
 		try {
 			message = (String) in.readObject();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (ClassNotFoundException | IOException e) {
+			log.warning("Unable to parse client login: " + e.getMessage()
+					+ " .Connection closed");
+			try {
+				in.close();
+				out.close();
+				newClientSocket.close();
+				return;
+			} catch (IOException e1) {
+				log.warning("Unable to close connection: " + e1.getMessage());
+			}
 		}
 
 		final String login = message;
+		if (clientOutStreamMap.containsKey(login)) {
+			sendMessage(out, String.format(
+					"User with login=%s already connected", login));
+			try {
+				in.close();
+				out.close();
+				newClientSocket.close();
+				return;
+			} catch (IOException e1) {
+				log.warning("Unable to close connection: " + e1.getMessage());
+			}
+		} else {
+			LinkedList<Response> delayedResponses = serviceContainer
+					.getDelayedResponses(login);
+			if (delayedResponses != null) {
+				for (Response response : delayedResponses)
+					sendMessage(out, response);
+				log.info(String.format(
+						"Sending %d delayed responses to client=%s",
+						delayedResponses.size(), login));
+			} else {
+				log.info(String.format("No delayed responses for client=%s",
+						login));
+			}
+
+			sendMessage(out, "Ok");
+
+		}
 		clientOutStreamMap.put(login, out);
 
 		log.info(String.format("New client connected: login=%s", login));
@@ -99,17 +122,17 @@ public class StockExchange {
 					log.info(String
 							.format("Add delayed response to client: client=%s about order: orderID=%d",
 									login, response.getOrderID()));
-					delayedResponses.add(response);
+					serviceContainer.addDelayedResponse(response);
 				}
 			}
 		};
 
-		addObserverToAll(observer);
+		serviceContainer.addObserver(observer);
 		listenClient(login, in, out, newClientSocket);
 	}
 
 	private void listenClient(final String login, final ObjectInputStream in,
-			ObjectOutputStream out, final Socket clientSocket) {
+			final ObjectOutputStream out, final Socket clientSocket) {
 		new Thread() {
 			public void run() {
 				while (true) {
@@ -119,7 +142,7 @@ public class StockExchange {
 						OrderVerifier orderVerifier = new OrderVerifier();
 						if (message instanceof String) {
 							if ("disconnect".equals((String) message)) {
-								disconnectClient(login, clientSocket);
+								disconnectClient(login, clientSocket, in, out);
 								return;
 							}
 							continue;
@@ -131,8 +154,7 @@ public class StockExchange {
 						}
 						if (order instanceof CancelOrder) {
 							order.setDate(new Date());
-							sendMessage(clientOutStreamMap.get(login),
-									order.getCancelingOrderID());
+							sendMessage(out, order.getCancelingOrderID());
 
 						} else {
 							int newOrderID = generateOrderID();
@@ -140,7 +162,8 @@ public class StockExchange {
 							order.setDate(new Date());
 							try {
 								orderVerifier.verifyTradeOrder(
-										(TradeOrder) order, TICKER_SYMBOLS);
+										(TradeOrder) order,
+										serviceContainer.getTickerSymbols());
 							} catch (BadOrderException e) {
 								sendMessage(clientOutStreamMap.get(login), -1);
 								continue;
@@ -148,8 +171,7 @@ public class StockExchange {
 							sendMessage(clientOutStreamMap.get(login),
 									newOrderID);
 						}
-						serviceContainer.get(order.getStockName()).sendOrder(
-								order);
+						serviceContainer.sendOrder(order);
 						log.info(String
 								.format("Add new order: orderID=%d from client: client=%s",
 										order.getCancelingOrderID(), login));
@@ -157,7 +179,7 @@ public class StockExchange {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (SocketException closeException) {
-						disconnectClient(login, clientSocket);
+						disconnectClient(login, clientSocket, in, out);
 						return;
 
 					} catch (IOException e) {
@@ -169,24 +191,17 @@ public class StockExchange {
 		}.start();
 	}
 
-	private void disconnectClient(String login, Socket socket) {
+	private void disconnectClient(String login, Socket socket,
+			ObjectInputStream in, ObjectOutputStream out) {
 		try {
+			in.close();
+			out.close();
 			socket.close();
 			clientOutStreamMap.remove(login);
 			log.info(String.format("Client disconnected: client=%s", login));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.warning(String.format("Unable to disconnect: client=%s", login));
 		}
-	}
-
-	private synchronized int generateOrderID() {
-		return orderCount++;
-	}
-
-	private void addObserverToAll(FilledObserver observer) {
-		for (String ticker : TICKER_SYMBOLS)
-			serviceContainer.get(ticker).addObserver(observer);
 	}
 
 	void sendMessage(ObjectOutputStream out, final Object response) {
@@ -194,7 +209,14 @@ public class StockExchange {
 			out.writeObject(response);
 			out.flush();
 		} catch (IOException ioException) {
-			ioException.printStackTrace();
+			log.warning("Unable to send message");
 		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		final String[] tickerSymbols = { "AAPL", "MCD", "IBM", "MSFT", "PG" };
+		ServiceContainer container = new ServiceContainer(tickerSymbols);
+		StockExchange stockExchange = new StockExchange(container);
+		stockExchange.runServer();
 	}
 }

@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -44,11 +45,33 @@ public class OrderingService implements OrderingApi {
 
 			outputStream.writeObject(loginName);
 
+			LinkedList<Response> delayedResponses = readDelayedResponses(inputStream);
+			for (Response response : delayedResponses)
+				notifyObservers(response);
 			runRead();
 
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException | NoLoginException e) {
 			throw new NoLoginException(e.getMessage());
 		}
+	}
+
+	private LinkedList<Response> readDelayedResponses(
+			ObjectInputStream inputStream) throws ClassNotFoundException,
+			IOException, NoLoginException {
+		LinkedList<Response> result = new LinkedList<>();
+		while (true) {
+			Object messageObject = inputStream.readObject();
+			if (messageObject instanceof String)
+				if ("Ok".equals((String) messageObject))
+					break;
+				else
+					throw new NoLoginException((String) messageObject);
+			else if (messageObject instanceof Response) {
+				result.add((Response) messageObject);
+			} else
+				throw new NoLoginException("Wrong server response");
+		}
+		return result;
 	}
 
 	private void runRead() {
