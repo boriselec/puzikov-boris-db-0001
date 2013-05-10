@@ -16,7 +16,7 @@ public class Response implements Serializable {
 		this.status = status;
 		this.price = order.getPrice();
 		this.dealPrice = order.getMeanDealPrice();
-		this.requestedShares = order.getSharesCount();
+		this.requestedShares = order.getRequestedSharesCount();
 		this.tradedShares = order.getTradedSharesCount();
 		this.date = new Date();
 		this.symbol = order.getStockName();

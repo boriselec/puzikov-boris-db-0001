@@ -42,6 +42,10 @@ public class TradeOrder extends Order {
 		return this.requestedSharesCount - this.tradedSharesCount;
 	}
 
+	public int getRequestedSharesCount() {
+		return this.requestedSharesCount;
+	}
+
 	public float getPrice() {
 		return price;
 	}

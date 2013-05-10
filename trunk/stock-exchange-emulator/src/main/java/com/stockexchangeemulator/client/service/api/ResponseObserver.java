@@ -2,6 +2,6 @@ package com.stockexchangeemulator.client.service.api;
 
 import com.stockexchangeemulator.domain.Response;
 
-public interface OrderObserver {
+public interface ResponseObserver {
 	void onResponse(Response response);
 }

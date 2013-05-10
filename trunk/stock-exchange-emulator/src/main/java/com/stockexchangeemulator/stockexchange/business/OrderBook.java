@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 
 import com.stockexchangeemulator.domain.CancelOrder;
-import com.stockexchangeemulator.domain.ConstantPriceMatcher;
 import com.stockexchangeemulator.domain.InverseOrderComparator;
 import com.stockexchangeemulator.domain.LastPriceMatcher;
 import com.stockexchangeemulator.domain.Order;
@@ -25,22 +24,22 @@ public class OrderBook {
 		bidsOrderBook = new TreeSet<>(new InverseOrderComparator());
 		offersOrderBook = new TreeSet<>(new OrderComparator());
 
-		this.startupMatcher = new ConstantPriceMatcher(getAveragePrice());
+		// this.startupMatcher = new ConstantPriceMatcher(getAveragePrice());
 		this.mainMatcher = new LastPriceMatcher();
 		this.responseManager = new ResponseManager();
 	}
 
-	private float getAveragePrice() {
-		// TODO: return average price for all crossing orders
-		return (float) 0.0;
-	}
+	// private float getAveragePrice() {
+	// // TODO: return average price for all crossing orders
+	// return (float) 0.0;
+	// }
 
 	private TreeSet<TradeOrder> bidsOrderBook;
 	private TreeSet<TradeOrder> offersOrderBook;
 
 	private PriceMatcher mainMatcher;
-	private PriceMatcher startupMatcher;
-	private float lastPrice = DEFAULT_PRICE;
+	// private PriceMatcher startupMatcher;
+	private float lastDealPrice = DEFAULT_PRICE;
 
 	private ResponseManager responseManager;
 
@@ -71,6 +70,8 @@ public class OrderBook {
 				return response;
 			}
 		}
+
+		// not found
 		response.add(responseManager.createErrorResponse(cancelOrder,
 				Status.ERROR));
 		return response;
@@ -91,7 +92,12 @@ public class OrderBook {
 		}
 	}
 
-	private void removeFirst(TreeSet<TradeOrder> book) {
+	private void removeFirst(TradeOperation type) {
+		TreeSet<TradeOrder> book;
+		if (type == TradeOperation.BID)
+			book = bidsOrderBook;
+		else
+			book = offersOrderBook;
 		Iterator<TradeOrder> iterator = book.iterator();
 		if (iterator.hasNext()) {
 			iterator.next();
@@ -99,24 +105,27 @@ public class OrderBook {
 		}
 	}
 
+	private TradeOrder getBest(TreeSet<TradeOrder> orderBook) {
+		Iterator<TradeOrder> iterator = orderBook.iterator();
+		return iterator.next();
+	}
+
 	private LinkedList<Response> fillOrders() {
 		LinkedList<Response> responses = new LinkedList<>();
 
 		while (true) {
-			Iterator<TradeOrder> bidIterator = bidsOrderBook.iterator();
-			Iterator<TradeOrder> offerIterator = offersOrderBook.iterator();
 			if (bidsOrderBook.size() == 0 || offersOrderBook.size() == 0)
 				break;
 
-			TradeOrder bid = bidIterator.next();
+			TradeOrder bid = getBest(bidsOrderBook);
 			float bidPrice = bid.getPrice();
 
-			TradeOrder offer = offerIterator.next();
+			TradeOrder offer = getBest(offersOrderBook);
 			float offerPrice = offer.getPrice();
 
 			if (PriceComparator.match(offerPrice, bidPrice)) {
-				float dealPrice = mainMatcher.match(offer, bid, lastPrice);
-				lastPrice = dealPrice;
+				float dealPrice = mainMatcher.match(offer, bid, lastDealPrice);
+				lastDealPrice = dealPrice;
 
 				LinkedList<Response> dealResponses = fill(bid, offer, dealPrice);
 				responseManager.spliceResponcesWithSameOrderID(responses,
@@ -164,10 +173,7 @@ public class OrderBook {
 		Response response = responseManager.createFilledResponse(order,
 				Status.FULLY_FILLED);
 
-		if (order.getType() == TradeOperation.BID)
-			removeFirst(bidsOrderBook);
-		else if (order.getType() == TradeOperation.OFFER)
-			removeFirst(offersOrderBook);
+		removeFirst(order.getType());
 		return response;
 	}
 

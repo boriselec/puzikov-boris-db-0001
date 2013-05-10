@@ -158,8 +158,6 @@ public class StockExchange {
 
 						} else {
 							int newOrderID = generateOrderID();
-							order.setOrderID(newOrderID);
-							order.setDate(new Date());
 							try {
 								orderVerifier.verifyTradeOrder(
 										(TradeOrder) order,
@@ -168,6 +166,8 @@ public class StockExchange {
 								sendMessage(clientOutStreamMap.get(login), -1);
 								continue;
 							}
+							order.setOrderID(newOrderID);
+							order.setDate(new Date());
 							sendMessage(clientOutStreamMap.get(login),
 									newOrderID);
 						}
@@ -176,8 +176,8 @@ public class StockExchange {
 								.format("Add new order: orderID=%d from client: client=%s",
 										order.getCancelingOrderID(), login));
 					} catch (ClassNotFoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						log.info(String.format("Bad clien request: client=%s",
+								login));
 					} catch (SocketException closeException) {
 						disconnectClient(login, clientSocket, in, out);
 						return;

@@ -10,12 +10,11 @@ import com.stockexchangeemulator.stockexchange.api.OrderingApi;
 
 public class ServiceContainer implements OrderingApi {
 	private String[] tickerSymbols;
-	private HashMap<String, OrderBookService> orderBookContainer;
+	private HashMap<String, OrderBookService> orderBookContainer = new HashMap<>();
 	private HashMap<String, LinkedList<Response>> delayedResponses = new HashMap<>();
 
 	public ServiceContainer(String[] tickers) {
 		this.tickerSymbols = tickers;
-		orderBookContainer = new HashMap<String, OrderBookService>();
 
 		for (String ticker : tickers) {
 			orderBookContainer.put(ticker, new OrderBookService());
