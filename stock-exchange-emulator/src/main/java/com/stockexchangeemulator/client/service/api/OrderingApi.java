@@ -10,8 +10,8 @@ public interface OrderingApi {
 	public int sendOrder(Order order) throws BadOrderException,
 			NoLoginException;
 
-	public void addObserver(OrderObserver observer);
+	public void addObserver(ResponseObserver observer);
 
-	public void removeObserver(OrderObserver observer);
+	public void removeObserver(ResponseObserver observer);
 
 }

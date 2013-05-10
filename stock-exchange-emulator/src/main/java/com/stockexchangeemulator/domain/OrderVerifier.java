@@ -1,5 +1,7 @@
 package com.stockexchangeemulator.domain;
 
+import java.util.Date;
+
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 
 public class OrderVerifier {
@@ -35,6 +37,7 @@ public class OrderVerifier {
 			throw new BadOrderException("Order should hava positive quantity");
 		TradeOrder result = new TradeOrder(login, stockName, operation,
 				sharesCount, price);
+		result.setDate(new Date());
 		return result;
 	}
 

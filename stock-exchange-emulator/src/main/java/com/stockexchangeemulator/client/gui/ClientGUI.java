@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -23,7 +24,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.stockexchangeemulator.client.network.OrderingService;
-import com.stockexchangeemulator.client.service.api.OrderObserver;
+import com.stockexchangeemulator.client.service.api.ResponseObserver;
 import com.stockexchangeemulator.client.service.exception.BadOrderException;
 import com.stockexchangeemulator.client.service.exception.NoLoginException;
 import com.stockexchangeemulator.domain.Order;
@@ -39,18 +40,49 @@ public class ClientGUI extends JFrame {
 	private String login;
 	boolean isConnected = false;
 
-	private OrderingService orderingService = new OrderingService(
-			new OrderObserver() {
+	private ResponseObserver responseObserver = new ResponseObserver() {
+		@Override
+		public void onResponse(Response response) {
+			if (response.getStatus() == Status.ERROR)
+				JOptionPane.showMessageDialog(contentPane,
+						response.getMessage());
+			drawResponse(response);
+			log.info("new response received");
+		}
+	};
 
-				@Override
-				public void onResponse(Response response) {
-					if (response.getStatus() == Status.ERROR)
-						JOptionPane.showMessageDialog(contentPane,
-								response.getMessage());
-					drawResponse(response);
-					log.info("new response received");
-				}
-			});
+	private OrderingService orderingService = new OrderingService(
+			responseObserver);
+
+	private ActionListener loginListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			loginClick();
+		}
+	};
+	private ActionListener disconnectListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			disconnectClick();
+		}
+	};
+	private ActionListener cancelListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (checkConnection() == false)
+				return;
+			cancelOrderClick();
+		}
+	};
+	private ActionListener sendListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (checkConnection() == false)
+				return;
+			sendOrderClick();
+		}
+	};
+
 	private JPanel contentPane;
 	private JTextField symbolTextField;
 	private JTextField priceTextField;
@@ -59,6 +91,7 @@ public class ClientGUI extends JFrame {
 	private static final String[] COLUMN_NAMES = { "Order ID", "Symbol",
 			"Status", "Quantity", "Traded", "Deal price", "Type", "Limit",
 			"Date" };
+	private SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm:ss");
 	private JTable table;
 	private DefaultTableModel dataTable;
 	private final JRadioButton limitRadioButton;
@@ -91,7 +124,7 @@ public class ClientGUI extends JFrame {
 	 */
 	public ClientGUI() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 900, 500);
+		setBounds(100, 100, 1000, 500);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -150,7 +183,7 @@ public class ClientGUI extends JFrame {
 
 		JButton submitButton = new JButton("Submit");
 
-		submitButton.setBounds(10, 159, 158, 20);
+		submitButton.setBounds(10, 159, 183, 20);
 		panel.add(submitButton);
 
 		JLabel lblOperation = new JLabel("Operation");
@@ -170,28 +203,16 @@ public class ClientGUI extends JFrame {
 		buyOrSellTypeGroup.add(buyRadioButton);
 		buyOrSellTypeGroup.add(sellRadioButton);
 
-		submitButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (checkConnection() == false)
-					return;
-				sendOrderClick();
-			}
-		});
+		submitButton.addActionListener(sendListener);
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel_1.setBounds(265, 11, 617, 451);
+		panel_1.setBounds(223, 11, 759, 451);
 		contentPane.add(panel_1);
 		panel_1.setLayout(null);
 
 		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (checkConnection() == false)
-					return;
-				cancelOrderClick();
-			}
-		});
+		cancelButton.addActionListener(cancelListener);
 		cancelButton.setBounds(10, 417, 91, 23);
 		panel_1.add(cancelButton);
 
@@ -199,12 +220,12 @@ public class ClientGUI extends JFrame {
 		table = new JTable();
 		table.setModel(dataTable);
 		JScrollPane jScrollPane = new JScrollPane(table);
-		jScrollPane.setBounds(10, 11, 597, 395);
+		jScrollPane.setBounds(10, 11, 739, 395);
 		panel_1.add(jScrollPane);
 
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel_2.setBounds(10, 213, 203, 101);
+		panel_2.setBounds(10, 213, 203, 134);
 		contentPane.add(panel_2);
 		panel_2.setLayout(null);
 
@@ -212,14 +233,9 @@ public class ClientGUI extends JFrame {
 		loginStatusLabel.setBounds(64, 11, 139, 14);
 		panel_2.add(loginStatusLabel);
 
-		JButton loginButton = new JButton("Login");
-		loginButton.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
-				loginClick();
-			}
-		});
-		loginButton.setBounds(10, 67, 158, 23);
+		JButton loginButton = new JButton("Connect");
+		loginButton.addActionListener(loginListener);
+		loginButton.setBounds(10, 67, 183, 23);
 		panel_2.add(loginButton);
 
 		loginTextField = new JTextField();
@@ -234,6 +250,11 @@ public class ClientGUI extends JFrame {
 		JLabel lblLogin = new JLabel("Login");
 		lblLogin.setBounds(10, 42, 46, 14);
 		panel_2.add(lblLogin);
+
+		JButton btnNewButton = new JButton("Disconnect");
+		btnNewButton.addActionListener(disconnectListener);
+		btnNewButton.setBounds(10, 101, 183, 23);
+		panel_2.add(btnNewButton);
 	}
 
 	public boolean checkConnection() {
@@ -276,9 +297,10 @@ public class ClientGUI extends JFrame {
 				|| limit == Float.NEGATIVE_INFINITY)
 			limitString = "MARKET";
 		else
-			limitString = ((Float) price).toString();
+			limitString = ((Float) limit).toString();
+		String dateString = (date == null) ? "" : dateFormater.format(date);
 		dataTable.addRow(new Object[] { orderID, stock, status, quantity,
-				tradedShares, price, type, limitString, date });
+				tradedShares, price, type, limitString, dateString });
 	}
 
 	private int getOrderIndex(int orderID) {
@@ -334,8 +356,7 @@ public class ClientGUI extends JFrame {
 			log.info("Failed to cancel order");
 		} else {
 
-			int orderID = Integer.parseInt((String) dataTable.getValueAt(index,
-					0));
+			int orderID = (int) dataTable.getValueAt(index, 0);
 			String stockNameString = (String) dataTable.getValueAt(index, 1);
 			OrderVerifier orderVerifier = new OrderVerifier();
 			Order cancelOrder = orderVerifier.getCancelOrder(login,
@@ -372,6 +393,14 @@ public class ClientGUI extends JFrame {
 			loginStatusLabel.setText("Disconnected");
 			JOptionPane.showMessageDialog(contentPane,
 					"Login error: " + ex.getMessage());
+		}
+	}
+
+	private void disconnectClick() {
+		if (checkConnection()) {
+			orderingService.disconnect();
+			isConnected = false;
+			loginStatusLabel.setText("Disconnected");
 		}
 	}
 }
