@@ -31,7 +31,7 @@ public class ServiceContainer implements OrderingApi {
 	public LinkedList<Response> getDelayedResponses(String login) {
 		if (delayedResponses.containsKey(login) == false)
 			return null;
-		LinkedList<Response> result = delayedResponses.get(login);
+		LinkedList<Response> result = delayedResponses.remove(login);
 		delayedResponses.remove(login);
 		return result;
 	}
