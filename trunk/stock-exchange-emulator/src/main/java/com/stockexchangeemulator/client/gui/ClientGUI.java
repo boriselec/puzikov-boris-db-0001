@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
@@ -46,11 +44,12 @@ public class ClientGUI extends JFrame {
 			if (response.getStatus() == Status.ERROR)
 				JOptionPane.showMessageDialog(contentPane,
 						response.getMessage());
-			drawResponse(response);
+			table.drawResponse(response);
 			log.info("new response received");
 		}
 	};
 
+	private OrderVerifier orderVerifier = new OrderVerifier();
 	private OrderingService orderingService = new OrderingService(
 			responseObserver);
 
@@ -91,15 +90,14 @@ public class ClientGUI extends JFrame {
 	private static final String[] COLUMN_NAMES = { "Order ID", "Symbol",
 			"Status", "Quantity", "Traded", "Deal price", "Type", "Limit",
 			"Date" };
-	private SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm:ss");
-	private JTable table;
-	private DefaultTableModel dataTable;
 	private final JRadioButton limitRadioButton;
 	private final JRadioButton marketRadioButton;
 	private final JRadioButton buyRadioButton;
 	private final JRadioButton sellRadioButton;
 	private final JLabel loginStatusLabel;
 	private JTextField loginTextField;
+	private TableRepresentation table;
+	private final JTable jtable;
 
 	/**
 	 * Launch the application.
@@ -216,10 +214,11 @@ public class ClientGUI extends JFrame {
 		cancelButton.setBounds(10, 417, 91, 23);
 		panel_1.add(cancelButton);
 
-		dataTable = new DefaultTableModel(null, COLUMN_NAMES);
-		table = new JTable();
-		table.setModel(dataTable);
-		JScrollPane jScrollPane = new JScrollPane(table);
+		DefaultTableModel dataTable = new DefaultTableModel(null, COLUMN_NAMES);
+		jtable = new JTable();
+		table = new TableRepresentation(dataTable);
+		jtable.setModel(dataTable);
+		JScrollPane jScrollPane = new JScrollPane(jtable);
 		jScrollPane.setBounds(10, 11, 739, 395);
 		panel_1.add(jScrollPane);
 
@@ -265,52 +264,6 @@ public class ClientGUI extends JFrame {
 			return true;
 	}
 
-	public void drawOrder(int orderID, TradeOrder order) {
-		drawRaw(orderID, order.getStockName(), Status.SEND,
-				order.getSharesCount(), 0, Float.NaN, order.getType(),
-				order.getPrice(), order.getDate());
-	}
-
-	public void drawResponse(Response response) {
-		int index;
-		try {
-			index = getOrderIndex(response.getOrderID());
-			dataTable.removeRow(index);
-		} catch (IllegalArgumentException e) {
-			JOptionPane.showMessageDialog(contentPane, String.format(
-					"Delayed responce received: orderID=%d",
-					response.getOrderID()));
-		}
-		drawRaw(response.getOrderID(), response.getSymbol(),
-				response.getStatus(), response.getRequestedShares(),
-				response.getTradedShares(), response.getDealPrice(),
-				response.getTradeOperation(), response.getPrice(),
-				response.getDate());
-	}
-
-	public void drawRaw(int orderID, String stock, Status status, int quantity,
-			int tradedShares, float price, TradeOperation type, float limit,
-			Date date) {
-
-		String limitString;
-		if (limit == Float.POSITIVE_INFINITY
-				|| limit == Float.NEGATIVE_INFINITY)
-			limitString = "MARKET";
-		else
-			limitString = ((Float) limit).toString();
-		String dateString = (date == null) ? "" : dateFormater.format(date);
-		dataTable.addRow(new Object[] { orderID, stock, status, quantity,
-				tradedShares, price, type, limitString, dateString });
-	}
-
-	private int getOrderIndex(int orderID) {
-		for (int i = 0; i < dataTable.getRowCount(); i++) {
-			if ((Integer) dataTable.getValueAt(i, 0) == orderID)
-				return i;
-		}
-		throw new IllegalArgumentException();
-	}
-
 	private void sendOrderClick() {
 		String stockName = symbolTextField.getText();
 		TradeOperation type = (buyRadioButton.getSelectedObjects() != null) ? TradeOperation.BID
@@ -320,14 +273,13 @@ public class ClientGUI extends JFrame {
 		String price = priceTextField.getText();
 		String sharesCount = quantityTextField.getText();
 		try {
-			OrderVerifier orderVerifier = new OrderVerifier();
 			TradeOrder order = orderVerifier.getTradeOrder(login, stockName,
 					type, limitOrMarket, price, sharesCount);
 			clearTextFields();
 			int orderId = 0;
 			orderId = orderingService.sendOrder(order);
 			log.info(String.format("Sended new order: orderID=%d", orderId));
-			drawOrder(orderId, order);
+			table.drawTradeOrder(orderId, order);
 		} catch (BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Bad arguments: " + e.getMessage());
@@ -343,35 +295,34 @@ public class ClientGUI extends JFrame {
 	}
 
 	private void cancelOrderClick() {
-		int index = table.getSelectedRow();
-		if (index == -1)
+		int index = jtable.getSelectedRow();
+		if (index == -1) {
 			JOptionPane
 					.showMessageDialog(contentPane, "Select order to cancel");
-		else if (dataTable.getValueAt(index, 2) == "CANCELED"
-				|| dataTable.getValueAt(index, 2) == "SEND CANCEL") {
+			return;
+		}
+		String statusString = table.getStatus(index);
+		int orderID = table.getOrderID(index);
+		String stockNameString = table.getStockName(index);
+		if (statusString == "CANCELED" || statusString == "SEND CANCEL") {
 			JOptionPane.showMessageDialog(contentPane, "Already canceled");
-			log.info("Failed to cancel order");
-		} else if (dataTable.getValueAt(index, 2) == "FULLY_FILLED") {
+			return;
+		}
+		if (statusString == "FULLY_FILLED") {
 			JOptionPane.showMessageDialog(contentPane, "Already executed");
-			log.info("Failed to cancel order");
-		} else {
+			return;
+		}
 
-			int orderID = (int) dataTable.getValueAt(index, 0);
-			String stockNameString = (String) dataTable.getValueAt(index, 1);
-			OrderVerifier orderVerifier = new OrderVerifier();
-			Order cancelOrder = orderVerifier.getCancelOrder(login,
-					stockNameString, orderID);
-			log.info(String
-					.format("Send cancel for order: orderID=%d", orderID));
-			try {
-				orderingService.sendOrder(cancelOrder);
-				dataTable.setValueAt("SEND CANCEL", index, 2);
-				log.info("Send to cancel order");
-			} catch (BadOrderException e) {
-				JOptionPane.showMessageDialog(contentPane,
-						"Can't cancel order. " + e.getMessage());
-				log.info("Failed to cancel order");
-			}
+		Order cancelOrder = orderVerifier.getCancelOrder(login,
+				stockNameString, orderID);
+		log.info(String.format("Send cancel for order: orderID=%d", orderID));
+		try {
+			orderingService.sendOrder(cancelOrder);
+			log.info("Send to cancel order");
+		} catch (BadOrderException e) {
+			JOptionPane.showMessageDialog(contentPane, "Can't cancel order. "
+					+ e.getMessage());
+			log.info("Failed to cancel order");
 		}
 
 	}
@@ -382,7 +333,6 @@ public class ClientGUI extends JFrame {
 			return;
 		}
 		try {
-			loginStatusLabel.setText("Connecting...");
 			login = loginTextField.getText();
 			orderingService.login(login);
 			isConnected = true;

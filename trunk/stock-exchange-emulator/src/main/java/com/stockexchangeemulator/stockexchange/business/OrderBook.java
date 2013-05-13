@@ -151,13 +151,12 @@ public class OrderBook {
 			responses.add(fullyFill(order2, dealPrice));
 			return responses;
 
-		} else if (order1SharesCount < order2SharesCount) {
+		} else { // if (order1SharesCount < order2SharesCount)
 			responses.add(fullyFill(order1, dealPrice));
 			responses.add(partiallyFill(order2, dealPrice, order1SharesCount));
 			return responses;
 
 		}
-		return null;
 	}
 
 	private Response partiallyFill(TradeOrder order, float price,

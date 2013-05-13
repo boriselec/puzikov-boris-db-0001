@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ public class OrderingService implements OrderingApi {
 	private Socket socket;
 	private ObjectInputStream inputStream;
 	private ObjectOutputStream outputStream;
+	private boolean isConnected = false;
 	private List<ResponseObserver> observers;
 	private LinkedBlockingQueue<Integer> responseOrderID;
 	private Thread listenThread;
@@ -40,6 +42,7 @@ public class OrderingService implements OrderingApi {
 					} else if (response instanceof Integer)
 						responseOrderID.add((int) response);
 				} catch (ClassNotFoundException | IOException breakException) {
+					disconnect();
 					break;
 				}
 			}
@@ -56,19 +59,21 @@ public class OrderingService implements OrderingApi {
 	}
 
 	public void login(String loginName) throws NoLoginException {
+		if ("".equals(loginName))
+			throw new NoLoginException("Empty login name");
 		try {
-			if ("".equals(loginName))
-				throw new NoLoginException("Empty login name");
-			socket = new Socket("localhost", DEFAULT_PORT);
-			outputStream = new ObjectOutputStream(socket.getOutputStream());
-			outputStream.flush();
-			inputStream = new ObjectInputStream(socket.getInputStream());
+			if (isConnected == false) {
+				try {
+					createConnection();
+				} catch (Exception e) {
+					throw new NoLoginException("Unable to create connection");
+				}
+			}
 
 			outputStream.writeObject(loginName);
 
-			LinkedList<Response> delayedResponses = readDelayedResponses(inputStream);
-			for (Response response : delayedResponses)
-				notifyObservers(response);
+			readDelayedResponses(inputStream);
+
 			listenThread = new Thread(listenThreadRunnable);
 			listenThread.start();
 		} catch (IOException | ClassNotFoundException | NoLoginException e) {
@@ -76,10 +81,15 @@ public class OrderingService implements OrderingApi {
 		}
 	}
 
-	private LinkedList<Response> readDelayedResponses(
-			ObjectInputStream inputStream) throws ClassNotFoundException,
-			IOException, NoLoginException {
-		LinkedList<Response> result = new LinkedList<>();
+	private void createConnection() throws UnknownHostException, IOException {
+		socket = new Socket("localhost", DEFAULT_PORT);
+		outputStream = new ObjectOutputStream(socket.getOutputStream());
+		inputStream = new ObjectInputStream(socket.getInputStream());
+	}
+
+	private void readDelayedResponses(ObjectInputStream inputStream)
+			throws ClassNotFoundException, IOException, NoLoginException {
+		LinkedList<Response> delayedResponses = new LinkedList<>();
 		while (true) {
 			Object messageObject = inputStream.readObject();
 			if (messageObject instanceof String)
@@ -88,11 +98,12 @@ public class OrderingService implements OrderingApi {
 				else
 					throw new NoLoginException((String) messageObject);
 			else if (messageObject instanceof Response) {
-				result.add((Response) messageObject);
+				delayedResponses.add((Response) messageObject);
 			} else
 				throw new NoLoginException("Wrong server response");
 		}
-		return result;
+		for (Response response : delayedResponses)
+			notifyObservers(response);
 	}
 
 	public int sendOrder(Order order) throws BadOrderException {
@@ -107,8 +118,8 @@ public class OrderingService implements OrderingApi {
 
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.warning("Bad server response");
+			throw new BadOrderException("Bad server response");
 		}
 		return result;
 	}
@@ -121,7 +132,7 @@ public class OrderingService implements OrderingApi {
 		observers.remove(observer);
 	}
 
-	public void notifyObservers(Response response) {
+	private void notifyObservers(Response response) {
 		for (ResponseObserver observer : observers) {
 			observer.onResponse(response);
 		}

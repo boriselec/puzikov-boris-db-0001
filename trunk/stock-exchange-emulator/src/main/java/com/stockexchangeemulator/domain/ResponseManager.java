@@ -22,7 +22,11 @@ public class ResponseManager {
 			LinkedList<Response> dealResponses) {
 		l: for (Response response : dealResponses) {
 			for (Response oldResponse : responses) {
-				if (oldResponse.getOrderID() == response.getOrderID()) {
+				boolean isSameClient = oldResponse.getLogin().equals(
+						response.getLogin());
+				boolean isSameOrderID = oldResponse.getOrderID() == response
+						.getOrderID();
+				if (isSameOrderID && isSameClient) {
 					oldResponse.splice(response);
 					continue l;
 				}
@@ -30,5 +34,4 @@ public class ResponseManager {
 			responses.add(response);
 		}
 	}
-
 }
