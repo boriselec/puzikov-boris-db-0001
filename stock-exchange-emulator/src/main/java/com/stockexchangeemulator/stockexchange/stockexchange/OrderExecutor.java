@@ -24,12 +24,10 @@ public class OrderExecutor {
 
 	public boolean execute(String login, Object message, int orderID)
 			throws DisconnectException, IOException {
-		System.out.println(orderID);
 		if (message instanceof String) {
 			if ("disconnect".equals((String) message)) {
 				throw new DisconnectException();
-			} else
-				return false;
+			}
 		}
 		Order order = null;
 		if (message instanceof Order) {

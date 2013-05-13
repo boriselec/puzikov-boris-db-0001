@@ -22,7 +22,6 @@ public class OrderingService implements OrderingApi {
 			.getName());
 	private final static int DEFAULT_PORT = 2006;
 	private Socket socket;
-	private boolean isConnected = false;
 	private List<ResponseObserver> observers;
 	private LinkedBlockingQueue<Integer> responseOrderID;
 	private Thread listenThread;
@@ -32,7 +31,7 @@ public class OrderingService implements OrderingApi {
 			while (true) {
 				try {
 					Object response = null;
-					response = messanger.readResponse();
+					response = messanger.readMessage();
 					if (response instanceof Response) {
 						notifyObservers((Response) response);
 					} else if (response instanceof Integer)
@@ -59,12 +58,10 @@ public class OrderingService implements OrderingApi {
 		if ("".equals(loginName))
 			throw new NoLoginException("Empty login name");
 		try {
-			if (isConnected == false) {
-				try {
-					createConnection();
-				} catch (Exception e) {
-					throw new NoLoginException("Unable to create connection");
-				}
+			try {
+				createConnection();
+			} catch (Exception e) {
+				throw new NoLoginException("Unable to create connection");
 			}
 
 			messanger.sendLogin(loginName);
@@ -136,11 +133,10 @@ public class OrderingService implements OrderingApi {
 
 	public void disconnect() {
 		try {
-			listenThread.interrupt();
 			messanger.closeStreams();
 			socket.close();
 		} catch (IOException e) {
-			log.warning("Unable to close connection");
+			log.warning("Unable to close connection: " + e.getMessage());
 		}
 	}
 }

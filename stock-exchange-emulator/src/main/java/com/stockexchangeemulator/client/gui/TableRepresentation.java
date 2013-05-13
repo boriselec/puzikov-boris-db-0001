@@ -21,7 +21,7 @@ public class TableRepresentation {
 	public void drawTradeOrder(int orderID, TradeOrder order) {
 		drawRaw(orderID, order.getStockName(), Status.SEND,
 				order.getSharesCount(), 0, Float.NaN, order.getType(),
-				order.getPrice(), new Date());
+				order.getPrice(), order.getDate());
 	}
 
 	public void drawCancelOrder() {
@@ -74,6 +74,11 @@ public class TableRepresentation {
 
 	public String getStatus(int index) {
 		return dataTable.getValueAt(index, 2).toString();
+	}
+
+	public void clearTable() {
+		for (int i = 0; i <= dataTable.getRowCount(); i++)
+			dataTable.removeRow(i);
 	}
 
 }
