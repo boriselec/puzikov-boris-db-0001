@@ -348,6 +348,7 @@ public class ClientGUI extends JFrame {
 
 	private void disconnectClick() {
 		if (checkConnection()) {
+			table.clearTable();
 			orderingService.disconnect();
 			isConnected = false;
 			loginStatusLabel.setText("Disconnected");
