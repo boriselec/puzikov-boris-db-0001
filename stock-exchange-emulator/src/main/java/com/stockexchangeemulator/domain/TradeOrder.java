@@ -24,6 +24,8 @@ public class TradeOrder extends Order {
 		this.meanDealPrice = (price * amount + this.meanDealPrice
 				* tradedSharesCount)
 				/ (amount + this.tradedSharesCount);
+		System.out.println(this.tradedSharesCount);
+		System.out.println(amount);
 		this.tradedSharesCount = this.requestedSharesCount;
 	}
 
@@ -31,6 +33,9 @@ public class TradeOrder extends Order {
 		this.meanDealPrice = (price * amount + this.meanDealPrice
 				* tradedSharesCount)
 				/ (amount + this.tradedSharesCount);
+		System.out.println("p");
+		System.out.println(this.tradedSharesCount);
+		System.out.println(amount);
 		this.tradedSharesCount += amount;
 	}
 

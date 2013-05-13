@@ -12,8 +12,8 @@ public abstract class Order implements Serializable {
 		this.stockName = stockName;
 	}
 
-	private String stockName;
-	private String login;
+	private final String stockName;
+	private final String login;
 	private Date date;
 	private int orderID;
 

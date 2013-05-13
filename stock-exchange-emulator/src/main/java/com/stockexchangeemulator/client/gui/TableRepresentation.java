@@ -77,8 +77,9 @@ public class TableRepresentation {
 	}
 
 	public void clearTable() {
-		for (int i = 0; i <= dataTable.getRowCount(); i++)
-			dataTable.removeRow(i);
+		if (dataTable.getRowCount() > 0)
+			for (int i = 0; i <= dataTable.getRowCount(); i++)
+				dataTable.removeRow(0);
 	}
 
 }

@@ -36,6 +36,9 @@ public class OrderingService implements OrderingApi {
 						notifyObservers((Response) response);
 					} else if (response instanceof Integer)
 						responseOrderID.add((int) response);
+					else {
+						observers.get(0).showError((String) response);
+					}
 				} catch (IOException breakException) {
 					disconnect();
 					break;
@@ -136,6 +139,7 @@ public class OrderingService implements OrderingApi {
 			messanger.closeStreams();
 			socket.close();
 		} catch (IOException e) {
+			observers.get(0).showError("Lost connection");
 			log.warning("Unable to close connection: " + e.getMessage());
 		}
 	}

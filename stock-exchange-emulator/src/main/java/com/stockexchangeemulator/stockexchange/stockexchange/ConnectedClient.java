@@ -30,9 +30,9 @@ public class ConnectedClient implements Runnable {
 	}
 
 	public ConnectedClient(ServiceContainer serviceContainer,
-			HashSet<String> clientMap, Socket socket) throws IOException {
+			HashSet<String> clientMap2, Socket socket) throws IOException {
 		this.serviceContainer = serviceContainer;
-		this.clientMap = clientMap;
+		this.clientMap = clientMap2;
 		this.socket = socket;
 		this.messager = new Messager(socket);
 	}
@@ -95,10 +95,12 @@ public class ConnectedClient implements Runnable {
 		LinkedList<Response> delayedResponses = serviceContainer
 				.getDelayedResponses(login);
 		if (delayedResponses != null) {
+			System.out.println(delayedResponses.size());
 			for (Response response : delayedResponses)
 				messager.sendResponse(response);
 			log.info(String.format("Sending %d delayed responses to client=%s",
 					delayedResponses.size(), login));
+			orderCount += delayedResponses.size();
 		} else {
 			log.info(String.format("No delayed responses for client=%s", login));
 		}

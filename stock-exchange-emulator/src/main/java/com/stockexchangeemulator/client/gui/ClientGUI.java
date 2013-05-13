@@ -47,6 +47,13 @@ public class ClientGUI extends JFrame {
 			table.drawResponse(response);
 			log.info("new response received");
 		}
+
+		@Override
+		public void showError(String error) {
+			isConnected = false;
+			table.clearTable();
+			JOptionPane.showMessageDialog(contentPane, error);
+		}
 	};
 
 	private OrderVerifier orderVerifier = new OrderVerifier();
@@ -276,8 +283,7 @@ public class ClientGUI extends JFrame {
 			TradeOrder order = orderVerifier.getTradeOrder(login, stockName,
 					type, limitOrMarket, price, sharesCount);
 			clearTextFields();
-			int orderId = 0;
-			orderId = orderingService.sendOrder(order);
+			int orderId = orderingService.sendOrder(order);
 			log.info(String.format("Sended new order: orderID=%d", orderId));
 			table.drawTradeOrder(orderId, order);
 		} catch (BadOrderException e) {
