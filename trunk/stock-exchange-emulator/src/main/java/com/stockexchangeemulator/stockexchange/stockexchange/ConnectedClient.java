@@ -1,8 +1,6 @@
 package com.stockexchangeemulator.stockexchange.stockexchange;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashSet;
@@ -22,8 +20,6 @@ public class ConnectedClient implements Runnable {
 	private HashSet<String> clientMap;
 	private ServiceContainer serviceContainer;
 	private Socket socket;
-	private ObjectInputStream in;
-	private ObjectOutputStream out;
 
 	private Messager messager;
 
@@ -34,12 +30,11 @@ public class ConnectedClient implements Runnable {
 	}
 
 	public ConnectedClient(ServiceContainer serviceContainer,
-			HashSet<String> clientMap, Socket socket) {
+			HashSet<String> clientMap, Socket socket) throws IOException {
 		this.serviceContainer = serviceContainer;
 		this.clientMap = clientMap;
 		this.socket = socket;
-		createConnection(socket);
-		this.messager = new Messager(in, out);
+		this.messager = new Messager(socket);
 	}
 
 	@Override
@@ -47,7 +42,7 @@ public class ConnectedClient implements Runnable {
 
 		try {
 			checkConnection();
-			sendDelayedResponses(out);
+			sendDelayedResponses();
 
 			clientMap.add(login);
 			createObserver();
@@ -58,22 +53,6 @@ public class ConnectedClient implements Runnable {
 			messager.sendError("Server IO error: " + e.getMessage());
 		}
 
-	}
-
-	private void createConnection(Socket socket) {
-		try {
-			in = new ObjectInputStream(socket.getInputStream());
-			out = new ObjectOutputStream(socket.getOutputStream());
-			out.flush();
-		} catch (IOException e) {
-			log.warning("Unable to create connection: " + e.getMessage());
-			try {
-				socket.close();
-			} catch (IOException e1) {
-				log.warning("Unable to close connection: " + e1.getMessage());
-			}
-			return;
-		}
 	}
 
 	private void checkConnection() throws IOException {
@@ -112,8 +91,7 @@ public class ConnectedClient implements Runnable {
 
 	}
 
-	private void sendDelayedResponses(ObjectOutputStream out)
-			throws IOException {
+	private void sendDelayedResponses() throws IOException {
 		LinkedList<Response> delayedResponses = serviceContainer
 				.getDelayedResponses(login);
 		if (delayedResponses != null) {
@@ -149,8 +127,7 @@ public class ConnectedClient implements Runnable {
 
 	private void disconnectClient() {
 		try {
-			in.close();
-			out.close();
+			messager.closeStreams();
 			socket.close();
 			clientMap.remove(login);
 			log.info(String.format("Client disconnected: client=%s", login));

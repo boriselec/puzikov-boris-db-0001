@@ -28,7 +28,8 @@ public class OrderExecutor {
 		if (message instanceof String) {
 			if ("disconnect".equals((String) message)) {
 				throw new DisconnectException();
-			}
+			} else
+				return false;
 		}
 		Order order = null;
 		if (message instanceof Order) {

@@ -1,8 +1,6 @@
 package com.stockexchangeemulator.client.network;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -24,8 +22,6 @@ public class OrderingService implements OrderingApi {
 			.getName());
 	private final static int DEFAULT_PORT = 2006;
 	private Socket socket;
-	private ObjectInputStream inputStream;
-	private ObjectOutputStream outputStream;
 	private boolean isConnected = false;
 	private List<ResponseObserver> observers;
 	private LinkedBlockingQueue<Integer> responseOrderID;
@@ -36,18 +32,19 @@ public class OrderingService implements OrderingApi {
 			while (true) {
 				try {
 					Object response = null;
-					response = inputStream.readObject();
+					response = messanger.readResponse();
 					if (response instanceof Response) {
 						notifyObservers((Response) response);
 					} else if (response instanceof Integer)
 						responseOrderID.add((int) response);
-				} catch (ClassNotFoundException | IOException breakException) {
+				} catch (IOException breakException) {
 					disconnect();
 					break;
 				}
 			}
 		}
 	};
+	private Messager messanger;
 
 	public OrderingService(ResponseObserver... observers) {
 		if (observers == null)
@@ -70,9 +67,9 @@ public class OrderingService implements OrderingApi {
 				}
 			}
 
-			outputStream.writeObject(loginName);
+			messanger.sendLogin(loginName);
 
-			readDelayedResponses(inputStream);
+			readDelayedResponses();
 
 			listenThread = new Thread(listenThreadRunnable);
 			listenThread.start();
@@ -83,15 +80,14 @@ public class OrderingService implements OrderingApi {
 
 	private void createConnection() throws UnknownHostException, IOException {
 		socket = new Socket("localhost", DEFAULT_PORT);
-		outputStream = new ObjectOutputStream(socket.getOutputStream());
-		inputStream = new ObjectInputStream(socket.getInputStream());
+		this.messanger = new Messager(socket);
 	}
 
-	private void readDelayedResponses(ObjectInputStream inputStream)
-			throws ClassNotFoundException, IOException, NoLoginException {
+	private void readDelayedResponses() throws ClassNotFoundException,
+			IOException, NoLoginException {
 		LinkedList<Response> delayedResponses = new LinkedList<>();
 		while (true) {
-			Object messageObject = inputStream.readObject();
+			Object messageObject = messanger.readMessage();
 			if (messageObject instanceof String)
 				if ("Ok".equals((String) messageObject))
 					break;
@@ -109,7 +105,7 @@ public class OrderingService implements OrderingApi {
 	public int sendOrder(Order order) throws BadOrderException {
 		int result = 0;
 		try {
-			outputStream.writeObject(order);
+			messanger.sendOrder(order);
 			try {
 				result = responseOrderID.take();
 				if (result == -1)
@@ -140,9 +136,8 @@ public class OrderingService implements OrderingApi {
 
 	public void disconnect() {
 		try {
-			outputStream.writeObject("disconnect");
-			inputStream.close();
-			outputStream.close();
+			listenThread.interrupt();
+			messanger.closeStreams();
 			socket.close();
 		} catch (IOException e) {
 			log.warning("Unable to close connection");
