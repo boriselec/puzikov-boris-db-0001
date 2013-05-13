@@ -25,14 +25,6 @@ public abstract class Order implements Serializable {
 		return login;
 	}
 
-	public Date getDate() {
-		return this.date;
-	}
-
-	public void setDate(Date date) {
-		this.date = date;
-	}
-
 	public int getCancelingOrderID() {
 		return this.orderID;
 	}
@@ -43,6 +35,14 @@ public abstract class Order implements Serializable {
 
 	public void setOrderID(int orderID) {
 		this.orderID = orderID;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 }

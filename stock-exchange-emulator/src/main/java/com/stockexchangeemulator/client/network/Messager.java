@@ -1,10 +1,11 @@
-package com.stockexchangeemulator.stockexchange.stockexchange;
+package com.stockexchangeemulator.client.network;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.stockexchangeemulator.domain.Order;
 import com.stockexchangeemulator.domain.Response;
 
 public class Messager {
@@ -17,6 +18,7 @@ public class Messager {
 	}
 
 	public void closeStreams() throws IOException {
+		out.writeObject("disconnect");
 		in.close();
 		out.close();
 	}
@@ -24,29 +26,6 @@ public class Messager {
 	private void sendMessage(final Object response) throws IOException {
 		out.writeObject(response);
 		out.flush();
-	}
-
-	public void sendSuccessfullLoginMessage() throws IOException {
-		sendMessage("Ok");
-	}
-
-	public void sendResponse(Response response) throws IOException {
-		sendMessage(response);
-	}
-
-	public void sendOrderID(int cancelingOrderID) throws IOException {
-		sendMessage(cancelingOrderID);
-	}
-
-	public void sendBadOrderID() throws IOException {
-		sendMessage(-1);
-	}
-
-	public void sendError(String message) {
-		try {
-			sendMessage(message);
-		} catch (IOException ignoredException) {
-		}
 	}
 
 	public Object readMessage() throws IOException {
@@ -58,12 +37,20 @@ public class Messager {
 		return null;
 	}
 
-	public String readLogin() throws IOException {
+	public void sendLogin(String loginName) throws IOException {
+		sendMessage(loginName);
+	}
+
+	public void sendOrder(Order order) throws IOException {
+		sendMessage(order);
+	}
+
+	public Response readResponse() throws IOException {
 		Object message = readMessage();
-		if (message instanceof String == false)
+		if (message instanceof Response == false)
 			throw new IOException();
 		else {
-			return (String) message;
+			return (Response) message;
 		}
 	}
 

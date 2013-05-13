@@ -24,21 +24,14 @@ public class OrderBook {
 		bidsOrderBook = new TreeSet<>(new InverseOrderComparator());
 		offersOrderBook = new TreeSet<>(new OrderComparator());
 
-		// this.startupMatcher = new ConstantPriceMatcher(getAveragePrice());
 		this.mainMatcher = new LastPriceMatcher();
 		this.responseManager = new ResponseManager();
 	}
-
-	// private float getAveragePrice() {
-	// // TODO: return average price for all crossing orders
-	// return (float) 0.0;
-	// }
 
 	private TreeSet<TradeOrder> bidsOrderBook;
 	private TreeSet<TradeOrder> offersOrderBook;
 
 	private PriceMatcher mainMatcher;
-	// private PriceMatcher startupMatcher;
 	private float lastDealPrice = DEFAULT_PRICE;
 
 	private ResponseManager responseManager;
