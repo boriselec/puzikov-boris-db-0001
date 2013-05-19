@@ -2,9 +2,9 @@ package com.see.server.network;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.UUID;
 
 import com.see.common.domain.ClientResponse;
-import com.see.common.domain.UUIDPair;
 
 public interface TradingMessagerAPI {
 
@@ -14,7 +14,7 @@ public interface TradingMessagerAPI {
 
 	public void sendResponse(ClientResponse response) throws IOException;
 
-	public void sendOrderID(UUIDPair uuidPair) throws IOException;
+	public void sendOrderID(UUID id) throws IOException;
 
 	public void sendBadOrderID() throws IOException;
 

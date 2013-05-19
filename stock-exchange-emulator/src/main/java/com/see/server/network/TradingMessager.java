@@ -2,12 +2,17 @@ package com.see.server.network;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.UUID;
 
 import com.see.common.domain.ClientResponse;
+import com.see.common.domain.Order;
 import com.see.common.domain.UUIDPair;
 import com.see.common.network.NetworkMessager;
 
 public class TradingMessager implements TradingMessagerAPI {
+
+	private HashMap<UUID, UUID> orderMap = new HashMap<>();
 
 	public TradingMessager(NetworkMessager messager) {
 		this.messager = messager;
@@ -26,8 +31,12 @@ public class TradingMessager implements TradingMessagerAPI {
 	}
 
 	@Override
-	public void sendOrderID(UUIDPair orderID) throws IOException {
-		messager.write(orderID);
+	public void sendOrderID(UUID orderID) throws IOException {
+		if (orderMap.containsKey(orderID)) {
+			UUIDPair message = new UUIDPair(orderMap.remove(orderID), orderID);
+			messager.write(message);
+		} else
+			throw new IllegalArgumentException("Bad orderID");
 	}
 
 	@Override
@@ -55,7 +64,11 @@ public class TradingMessager implements TradingMessagerAPI {
 
 	@Override
 	public Object readOrder() throws IOException {
-		return messager.read();
+		Object message = messager.read();
+		if (message instanceof Order)
+			orderMap.put(((Order) message).getOrderID(),
+					((Order) message).getLocalOrderID());
+		return message;
 	}
 
 	@Override

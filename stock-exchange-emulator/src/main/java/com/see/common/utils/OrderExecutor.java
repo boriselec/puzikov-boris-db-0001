@@ -6,7 +6,6 @@ import java.util.Date;
 import com.see.common.domain.CancelOrder;
 import com.see.common.domain.Order;
 import com.see.common.domain.TradeOrder;
-import com.see.common.domain.UUIDPair;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.DisconnectException;
 import com.see.server.business.ServiceContainer;
@@ -37,8 +36,7 @@ public class OrderExecutor {
 		}
 		if (order instanceof CancelOrder) {
 			order.setDate(new Date());
-			messager.sendOrderID(new UUIDPair(order.getLocalOrderID(), order
-					.getOrderID()));
+			messager.sendOrderID(order.getOrderID());
 			serviceContainer.sendOrder(order);
 			return true;
 
@@ -52,11 +50,9 @@ public class OrderExecutor {
 			}
 			order.setDate(new Date());
 			serviceContainer.sendOrder(order);
-			messager.sendOrderID(new UUIDPair(order.getLocalOrderID(), order
-					.getOrderID()));
+			messager.sendOrderID(order.getOrderID());
 			return true;
 		}
 		return false;
 	}
-
 }
