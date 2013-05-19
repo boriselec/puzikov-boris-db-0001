@@ -22,16 +22,16 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import com.see.client.network.OrderingService;
-import com.see.client.service.api.ResponseObserver;
-import com.see.client.service.exception.BadOrderException;
-import com.see.client.service.exception.NoLoginException;
-import com.see.domain.ClientResponse;
-import com.see.domain.Order;
-import com.see.domain.OrderVerifier;
-import com.see.domain.Status;
-import com.see.domain.TradeOperation;
-import com.see.domain.TradeOrder;
+import com.see.client.network.Client;
+import com.see.client.network.ResponseObserver;
+import com.see.common.domain.ClientResponse;
+import com.see.common.domain.Order;
+import com.see.common.domain.Status;
+import com.see.common.domain.TradeOperation;
+import com.see.common.domain.TradeOrder;
+import com.see.common.exception.BadOrderException;
+import com.see.common.exception.NoLoginException;
+import com.see.common.utils.OrderVerifier;
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
@@ -58,8 +58,7 @@ public class ClientGUI extends JFrame {
 	};
 
 	private OrderVerifier orderVerifier = new OrderVerifier();
-	private OrderingService orderingService = new OrderingService(
-			responseObserver);
+	private Client client;
 
 	private ActionListener loginListener = new ActionListener() {
 		@Override
@@ -90,10 +89,10 @@ public class ClientGUI extends JFrame {
 		}
 	};
 
-	private JPanel contentPane;
-	private JTextField symbolTextField;
-	private JTextField priceTextField;
-	private JTextField quantityTextField;
+	private final JPanel contentPane;
+	private final JTextField symbolTextField;
+	private final JTextField priceTextField;
+	private final JTextField quantityTextField;
 
 	private static final String[] COLUMN_NAMES = { "Order ID", "Symbol",
 			"Status", "Quantity", "Traded", "Deal price", "Type", "Limit",
@@ -103,8 +102,8 @@ public class ClientGUI extends JFrame {
 	private final JRadioButton buyRadioButton;
 	private final JRadioButton sellRadioButton;
 	private final JLabel loginStatusLabel;
-	private JTextField loginTextField;
-	private TableRepresentation table;
+	private final JTextField loginTextField;
+	private final TableRepresentation table;
 	private final JTable jtable;
 
 	/**
@@ -129,6 +128,10 @@ public class ClientGUI extends JFrame {
 	 * Create the frame.
 	 */
 	public ClientGUI() {
+
+		client = new Client();
+		client.addObserver(responseObserver);
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1000, 500);
 		contentPane = new JPanel();
@@ -264,7 +267,7 @@ public class ClientGUI extends JFrame {
 		panel_2.add(btnNewButton);
 	}
 
-	public boolean checkConnection() {
+	private boolean checkConnection() {
 		if (isConnected == false) {
 			JOptionPane.showMessageDialog(contentPane, "No connection");
 			return false;
@@ -284,7 +287,7 @@ public class ClientGUI extends JFrame {
 			TradeOrder order = orderVerifier.getTradeOrder(login, stockName,
 					type, limitOrMarket, price, sharesCount);
 			clearTextFields();
-			UUID orderId = orderingService.sendOrder(order);
+			UUID orderId = client.sendOrder(order);
 			log.info(String.format("Sended new order: orderID=%s",
 					orderId.toString()));
 			table.drawTradeOrder(orderId, order);
@@ -326,7 +329,7 @@ public class ClientGUI extends JFrame {
 		log.info(String.format("Send cancel for order: orderID=%s",
 				orderID.toString()));
 		try {
-			orderingService.sendOrder(cancelOrder);
+			client.sendOrder(cancelOrder);
 			log.info("Send to cancel order");
 		} catch (BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane, "Can't cancel order. "
@@ -343,7 +346,7 @@ public class ClientGUI extends JFrame {
 		}
 		try {
 			login = loginTextField.getText();
-			orderingService.login(login);
+			client.login(login);
 			isConnected = true;
 			log.info(String.format("Connected to stock exchange. ClientID=%s",
 					login));
@@ -358,7 +361,7 @@ public class ClientGUI extends JFrame {
 	private void disconnectClick() {
 		if (checkConnection()) {
 			table.clearTable();
-			orderingService.disconnect();
+			client.disconnect();
 			isConnected = false;
 			loginStatusLabel.setText("Disconnected");
 		}

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.1.2" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" language="java" name="com.see.client.gui.ClientGUI" project="SEE" 
+    file="/SEE/src/main/java/com/see/client/gui/ClientGUI.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="90" y="56"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </class>  
+  <interface id="2" language="java" name="com.see.client.network.ClientAPI" project="SEE" 
+    file="/SEE/src/main/java/com/see/client/network/ClientAPI.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="334" y="318"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <class id="3" language="java" name="com.see.client.network.Client" project="SEE" 
+    file="/SEE/src/main/java/com/see/client/network/Client.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="340" y="85"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </class>  
+  <interface id="4" language="java" name="com.see.client.network.TradingMessagerAPI" project="SEE" 
+    file="/SEE/src/main/java/com/see/client/network/TradingMessagerAPI.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="681" y="92"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <class id="5" language="java" name="com.see.client.network.TradingMessager" project="SEE" 
+    file="/SEE/src/main/java/com/see/client/network/TradingMessager.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="683" y="326"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </class>  
+  <interface id="6" language="java" name="com.see.common.network.NetworkMessager" project="SEE" 
+    file="/SEE/src/main/java/com/see/common/network/NetworkMessager.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="980" y="325"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="false" protected="false" private="false"/>      
+      <operations public="true" package="false" protected="false" private="false"/>    
+    </display>  
+  </interface>  
+  <realization id="7">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <association id="8">    
+    <end type="SOURCE" refId="3" navigable="false">      
+      <attribute id="9" name="messager"/>      
+      <multiplicity id="10" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="11">    
+    <end type="SOURCE" refId="5" navigable="false">      
+      <attribute id="12" name="messager"/>      
+      <multiplicity id="13" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="14">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="15" name="client"/>      
+      <multiplicity id="16" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="3" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization id="17">    
+    <end type="SOURCE" refId="5"/>    
+    <end type="TARGET" refId="4"/>  
+  </realization>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    accessors="true" visibility="true">    
+    <attributes public="true" package="false" protected="false" private="false"/>    
+    <operations public="true" package="false" protected="false" private="false"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

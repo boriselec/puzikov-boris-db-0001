@@ -8,13 +8,13 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.see.domain.CancelOrder;
-import com.see.domain.CancelResponse;
-import com.see.domain.ErrorResponse;
-import com.see.domain.Order;
-import com.see.domain.OrderBookResponse;
-import com.see.domain.TradeOperation;
-import com.see.domain.TradeOrder;
+import com.see.common.domain.CancelOrder;
+import com.see.common.domain.CancelResponse;
+import com.see.common.domain.ErrorResponse;
+import com.see.common.domain.Order;
+import com.see.common.domain.OrderBookResponse;
+import com.see.common.domain.TradeOperation;
+import com.see.common.domain.TradeOrder;
 import com.see.server.business.OrderBook;
 
 public class OrderBookTest extends TestCase {

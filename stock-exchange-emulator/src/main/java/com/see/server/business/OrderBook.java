@@ -5,19 +5,19 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import com.see.domain.CancelOrder;
-import com.see.domain.CancelResponse;
-import com.see.domain.ErrorResponse;
-import com.see.domain.InverseOrderComparator;
-import com.see.domain.LastPriceMatcher;
-import com.see.domain.Order;
-import com.see.domain.OrderBookResponse;
-import com.see.domain.OrderComparator;
-import com.see.domain.PriceComparator;
-import com.see.domain.PriceMatcher;
-import com.see.domain.Trade;
-import com.see.domain.TradeOperation;
-import com.see.domain.TradeOrder;
+import com.see.common.domain.CancelOrder;
+import com.see.common.domain.CancelResponse;
+import com.see.common.domain.ErrorResponse;
+import com.see.common.domain.InverseOrderComparator;
+import com.see.common.domain.Order;
+import com.see.common.domain.OrderBookResponse;
+import com.see.common.domain.OrderComparator;
+import com.see.common.domain.Trade;
+import com.see.common.domain.TradeOperation;
+import com.see.common.domain.TradeOrder;
+import com.see.common.pricing.LastPriceMatcher;
+import com.see.common.pricing.PriceComparator;
+import com.see.common.pricing.PriceMatcher;
 
 public class OrderBook {
 	private static float DEFAULT_PRICE = (float) 100.0;
