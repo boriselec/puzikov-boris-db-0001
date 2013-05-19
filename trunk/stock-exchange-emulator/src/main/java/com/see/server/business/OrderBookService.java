@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
-import com.see.domain.Order;
-import com.see.domain.OrderBookResponse;
-import com.see.server.stockexchange.FilledObserver;
+import com.see.common.domain.Order;
+import com.see.common.domain.OrderBookResponse;
+import com.see.server.FilledObserver;
 
 public class OrderBookService {
 	private static Logger log = Logger.getLogger(OrderBook.class.getName());

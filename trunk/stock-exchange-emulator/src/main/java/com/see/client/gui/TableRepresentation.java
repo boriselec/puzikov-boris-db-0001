@@ -6,10 +6,10 @@ import java.util.UUID;
 
 import javax.swing.table.DefaultTableModel;
 
-import com.see.domain.ClientResponse;
-import com.see.domain.Status;
-import com.see.domain.TradeOperation;
-import com.see.domain.TradeOrder;
+import com.see.common.domain.ClientResponse;
+import com.see.common.domain.Status;
+import com.see.common.domain.TradeOperation;
+import com.see.common.domain.TradeOrder;
 
 public class TableRepresentation {
 	public TableRepresentation(DefaultTableModel dataTable) {

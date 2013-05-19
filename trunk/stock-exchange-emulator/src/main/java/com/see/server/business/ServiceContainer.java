@@ -3,10 +3,10 @@ package com.see.server.business;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import com.see.domain.ClientResponse;
-import com.see.domain.Order;
-import com.see.server.stockexchange.FilledObserver;
-import com.see.server.stockexchange.TradingServise;
+import com.see.common.domain.ClientResponse;
+import com.see.common.domain.Order;
+import com.see.server.FilledObserver;
+import com.see.server.TradingServise;
 
 public class ServiceContainer implements TradingServise {
 	private String[] tickerSymbols;
