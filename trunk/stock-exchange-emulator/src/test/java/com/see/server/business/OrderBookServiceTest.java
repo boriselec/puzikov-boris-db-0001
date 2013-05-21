@@ -1,4 +1,4 @@
-package com.stockexchangeemulator.stockexchange.business;
+package com.see.server.business;
 
 import junit.framework.TestCase;
 

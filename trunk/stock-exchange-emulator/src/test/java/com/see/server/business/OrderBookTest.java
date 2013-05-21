@@ -1,4 +1,4 @@
-package com.stockexchangeemulator.stockexchange.business;
+package com.see.server.business;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -13,6 +13,7 @@ import com.see.common.domain.CancelResponse;
 import com.see.common.domain.ErrorResponse;
 import com.see.common.domain.Order;
 import com.see.common.domain.OrderBookResponse;
+import com.see.common.domain.Trade;
 import com.see.common.domain.TradeOperation;
 import com.see.common.domain.TradeOrder;
 import com.see.server.business.OrderBook;
@@ -50,16 +51,33 @@ public class OrderBookTest extends TestCase {
 				2, (float) 1.0, new Date()));
 
 		assertEquals(responses.size(), 1);
-		// int numFullyFilled = 0;
-		// int numPartiallyFilled = 0;
-		// for (OrderBookResponse response : responses) {
-		// if (response.getStatus() == Status.FULLY_FILLED)
-		// numFullyFilled++;
-		// else if (response.getStatus() == Status.PARTIALLY_FILLED)
-		// numPartiallyFilled++;
-		// }
-		// assertEquals(numFullyFilled, 2);
-		// assertEquals(numPartiallyFilled, 0);
+		assertEquals(responses.getFirst() instanceof Trade, true);
+		int numFullyFilled = getFullyFilledCount(responses);
+		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
+		assertEquals(numFullyFilled, 2);
+		assertEquals(numPartiallyFilled, 0);
+	}
+
+	private int getPartiallyFilledCoutn(LinkedList<OrderBookResponse> responses2) {
+		int count = 0;
+		for (OrderBookResponse response : responses2) {
+			if (((Trade) response).getBid().getSharesCount() > 0)
+				count++;
+			if (((Trade) response).getOffer().getSharesCount() > 0)
+				count++;
+		}
+		return count;
+	}
+
+	private int getFullyFilledCount(LinkedList<OrderBookResponse> responses2) {
+		int count = 0;
+		for (OrderBookResponse response : responses2) {
+			if (((Trade) response).getBid().getSharesCount() == 0)
+				count++;
+			if (((Trade) response).getOffer().getSharesCount() == 0)
+				count++;
+		}
+		return count;
 	}
 
 	@Test
@@ -84,17 +102,12 @@ public class OrderBookTest extends TestCase {
 		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
 				2, (float) 1.0, new Date()));
 		assertEquals(responses.size(), 1);
+		assertEquals(responses.getFirst() instanceof Trade, true);
 
-		// int numFullyFilled = 0;
-		// int numPartiallyFilled = 0;
-		// for (OrderBookResponse response : responses) {
-		// if (response.getStatus() == Status.FULLY_FILLED)
-		// numFullyFilled++;
-		// else if (response.getStatus() == Status.PARTIALLY_FILLED)
-		// numPartiallyFilled++;
-		// }
-		// assertEquals(numFullyFilled, 1);
-		// assertEquals(numPartiallyFilled, 1);
+		int numFullyFilled = getFullyFilledCount(responses);
+		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
+		assertEquals(numFullyFilled, 1);
+		assertEquals(numPartiallyFilled, 1);
 	}
 
 	@Test
@@ -107,41 +120,34 @@ public class OrderBookTest extends TestCase {
 		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
 				(float) 1.0, new Date()));
 		assertEquals(responses.size(), 1);
+		assertEquals(responses.getFirst() instanceof Trade, true);
 
-		// int numFullyFilled = 0;
-		// int numPartiallyFilled = 0;
-		// for (OrderBookResponse response : responses) {
-		// if (response.getStatus() == Status.FULLY_FILLED)
-		// numFullyFilled++;
-		// else if (response.getStatus() == Status.PARTIALLY_FILLED)
-		// numPartiallyFilled++;
-		// }
-		// assertEquals(numFullyFilled, 1);
-		// assertEquals(numPartiallyFilled, 1);
+		int numFullyFilled = getFullyFilledCount(responses);
+		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
+		assertEquals(numFullyFilled, 1);
+		assertEquals(numPartiallyFilled, 1);
+
 	}
 
 	@Test
 	public void testShouldFillAllOrdersWhenAddedOneToManyMatchingOffer() {
-		for (int i = 0; i < 5; i++) {
-			responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID,
-					1, Float.POSITIVE_INFINITY, new Date()));
-			assertEquals(responses.size(), 0);
-		}
-
 		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				5, (float) 1.0, new Date()));
-		assertEquals(responses.size(), 5);
-
-		// int numFullyFilled = 0;
-		// int numPartiallyFilled = 0;
-		// for (OrderBookResponse response : responses) {
-		// if (response.getStatus() == Status.FULLY_FILLED)
-		// numFullyFilled++;
-		// else if (response.getStatus() == Status.PARTIALLY_FILLED)
-		// numPartiallyFilled++;
-		// }
-		// assertEquals(numFullyFilled, 6);
-		// assertEquals(numPartiallyFilled, 0);
+				2, (float) 1.0, new Date()));
+		assertEquals(responses.size(), 0);
+		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 1,
+				Float.POSITIVE_INFINITY, new Date()));
+		assertEquals(responses.size(), 1);
+		int numFullyFilled = getFullyFilledCount(responses);
+		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
+		assertEquals(numFullyFilled, 1);
+		assertEquals(numPartiallyFilled, 1);
+		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 1,
+				Float.POSITIVE_INFINITY, new Date()));
+		assertEquals(responses.size(), 1);
+		numFullyFilled = getFullyFilledCount(responses);
+		numPartiallyFilled = getPartiallyFilledCoutn(responses);
+		assertEquals(numFullyFilled, 2);
+		assertEquals(numPartiallyFilled, 0);
 
 	}
 
@@ -161,7 +167,7 @@ public class OrderBookTest extends TestCase {
 	}
 
 	@Test
-	public void testShouldReturnErrorResponseWhenReceiveCancelOrderWithNoSuchOrderInBook() {
+	public void testShouldReturnErrorResponseWhenReceiveBadCancelOrder() {
 
 		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
 				(float) 1.0, new Date()));

@@ -22,7 +22,7 @@ public class TableRepresentation {
 	public void drawTradeOrder(UUID orderID, TradeOrder order) {
 		drawRaw(orderID, order.getStockName(), Status.SEND,
 				order.getSharesCount(), 0, Float.NaN, order.getType(),
-				order.getPrice(), order.getDate());
+				order.getPrice(), new Date());
 	}
 
 	public void drawCancelOrder() {

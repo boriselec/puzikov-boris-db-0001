@@ -9,7 +9,6 @@ public abstract class Order implements Serializable {
 	private static final long serialVersionUID = 6690070311631397742L;
 
 	public Order(String login, String stockName) {
-		this.orderID = UUID.randomUUID();
 		this.login = login;
 		this.stockName = stockName;
 	}
@@ -17,8 +16,13 @@ public abstract class Order implements Serializable {
 	private final String stockName;
 	private final String login;
 	private Date date;
-	private final UUID orderID;
-	private UUID localOrderID;
+	private UUID orderID;
+
+	public void setOrderID(UUID orderID) {
+		this.orderID = orderID;
+	}
+
+	private Integer localOrderID;
 
 	public String getStockName() {
 		return stockName;
@@ -44,11 +48,11 @@ public abstract class Order implements Serializable {
 		this.date = date;
 	}
 
-	public UUID getLocalOrderID() {
+	public Integer getLocalOrderID() {
 		return localOrderID;
 	}
 
-	public void setLocalOrderID(UUID id) {
+	public void setLocalOrderID(Integer id) {
 		this.localOrderID = id;
 	}
 
