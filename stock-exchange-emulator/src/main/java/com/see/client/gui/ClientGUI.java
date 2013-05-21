@@ -22,7 +22,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import com.see.client.network.Client;
+import com.see.client.network.DefaultClient;
 import com.see.client.network.ResponseObserver;
 import com.see.common.domain.ClientResponse;
 import com.see.common.domain.Order;
@@ -52,7 +52,7 @@ public class ClientGUI extends JFrame {
 	};
 
 	private OrderVerifier orderVerifier = new OrderVerifier();
-	private Client client;
+	private DefaultClient client;
 
 	private ActionListener loginListener = new ActionListener() {
 		@Override
@@ -123,7 +123,7 @@ public class ClientGUI extends JFrame {
 	 */
 	public ClientGUI() {
 
-		client = new Client();
+		client = new DefaultClient();
 		client.addObserver(responseObserver);
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
