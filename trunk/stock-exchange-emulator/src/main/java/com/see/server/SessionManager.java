@@ -6,7 +6,7 @@ import java.util.HashMap;
 import com.see.common.exception.NoLoginException;
 import com.see.common.utils.ResponseManager;
 import com.see.server.business.ServiceContainer;
-import com.see.server.network.TradingMessagerAPI;
+import com.see.server.network.TradingMessager;
 
 public class SessionManager {
 
@@ -33,7 +33,7 @@ public class SessionManager {
 
 	private HashMap<String, Thread> clientMap = new HashMap<>();
 
-	private String getLogin(TradingMessagerAPI tradingMessager)
+	private String getLogin(TradingMessager tradingMessager)
 			throws NoLoginException {
 		String clientLogin;
 		try {
@@ -45,7 +45,7 @@ public class SessionManager {
 	}
 
 	public ClientSession getClientSession(ServiceContainer serviceContainer,
-			TradingMessagerAPI tradingMessager, ResponseManager responseManager)
+			TradingMessager tradingMessager, ResponseManager responseManager)
 			throws NoLoginException {
 		String clientLogin = getLogin(tradingMessager);
 		if (clientMap.containsKey(clientLogin))

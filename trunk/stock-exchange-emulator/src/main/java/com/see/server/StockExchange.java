@@ -10,8 +10,8 @@ import com.see.common.network.NetworkMessager;
 import com.see.common.network.ObjectStreamMessager;
 import com.see.common.utils.ResponseManager;
 import com.see.server.business.ServiceContainer;
+import com.see.server.network.DefaultTradingMessager;
 import com.see.server.network.TradingMessager;
-import com.see.server.network.TradingMessagerAPI;
 
 public class StockExchange {
 	private static Logger log = Logger.getLogger(StockExchange.class.getName());
@@ -33,7 +33,7 @@ public class StockExchange {
 
 			ResponseManager responseManager = new ResponseManager();
 			NetworkMessager networkMessager = new ObjectStreamMessager();
-			TradingMessagerAPI tradingMessager = new TradingMessager(
+			TradingMessager tradingMessager = new DefaultTradingMessager(
 					networkMessager);
 			tradingMessager.connect(newClientSocket);
 

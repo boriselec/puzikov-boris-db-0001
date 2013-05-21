@@ -3,6 +3,7 @@ package com.see.server.business;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import com.see.common.domain.CancelOrder;
 import com.see.common.domain.ClientResponse;
 import com.see.common.domain.Order;
 import com.see.server.FilledObserver;
@@ -58,5 +59,10 @@ public class ServiceContainer implements TradingServise {
 
 	public String[] getTickerSymbols() {
 		return tickerSymbols;
+	}
+
+	public void cancel(CancelOrder order) {
+		this.orderBookContainer.get(order.getStockName())
+				.sendCancelOrder(order);
 	}
 }

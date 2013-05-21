@@ -1,4 +1,5 @@
 package systemtests;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -7,7 +8,7 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.see.client.network.Client;
+import com.see.client.network.DefaultClient;
 import com.see.client.network.ResponseObserver;
 import com.see.common.domain.ClientResponse;
 import com.see.common.domain.Order;
@@ -15,6 +16,7 @@ import com.see.common.domain.Status;
 import com.see.common.domain.TradeOperation;
 import com.see.common.domain.TradeOrder;
 import com.see.common.exception.BadOrderException;
+import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
 import com.see.server.StockExchange;
 import com.see.server.business.ServiceContainer;
@@ -28,7 +30,7 @@ public class SystemTests extends TestCase {
 				responses.add(response);
 			}
 		};
-		public Client client = new Client();
+		public DefaultClient client = new DefaultClient();
 		public ArrayList<ClientResponse> responses = new ArrayList<>();
 		public ArrayList<Order> orders = new ArrayList<>();
 
@@ -41,6 +43,11 @@ public class SystemTests extends TestCase {
 			client.sendOrder(order);
 		}
 
+		public void sendCancel(Order order) throws BadOrderException,
+				CancelOrderException {
+			client.cancelOrder(order);
+		}
+
 	}
 
 	static StockExchange stockExchange;
@@ -49,9 +56,55 @@ public class SystemTests extends TestCase {
 
 	@Before
 	public static void init() {
-		final String[] tickerSymbols = { "AAPL", "MCD", "IBM", "MSFT", "PG" };
-		ServiceContainer container = new ServiceContainer(tickerSymbols);
-		stockExchange = new StockExchange(container);
+	}
+
+	@Test
+	public void test_SimpleCancelAction() throws NoLoginException,
+			BadOrderException, IOException {
+		Thread serverThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					final String[] tickerSymbols = { "AAPL", "MCD", "IBM",
+							"MSFT", "PG" };
+					ServiceContainer container = new ServiceContainer(
+							tickerSymbols);
+					stockExchange = new StockExchange(container);
+					stockExchange.runServer();
+				} catch (IOException e) {
+				}
+
+			}
+		});
+		serverThread.start();
+		Thread clint1Thread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				client1 = new ClientFake();
+				try {
+					client1.client.login("Alice");
+					Order order = new TradeOrder("Alice", "IBM",
+							TradeOperation.BID, 1, (float) 1.0);
+					client1.sendOrder(order);
+					client1.sendCancel(order);
+					assertEquals(client1.responses.size(), 1);
+					assertEquals(client2.responses.get(0).getStatus(),
+							Status.FULLY_FILLED);
+					assertEquals(client1.responses.size(), 1);
+					assertEquals(client2.responses.get(0).getStatus(),
+							Status.FULLY_FILLED);
+				} catch (NoLoginException | BadOrderException e) {
+				} catch (CancelOrderException e) {
+				}
+			}
+
+		});
+		clint1Thread.start();
+
 	}
 
 	@Test
@@ -63,6 +116,11 @@ public class SystemTests extends TestCase {
 			public void run() {
 
 				try {
+					final String[] tickerSymbols = { "AAPL", "MCD", "IBM",
+							"MSFT", "PG" };
+					ServiceContainer container = new ServiceContainer(
+							tickerSymbols);
+					stockExchange = new StockExchange(container);
 					stockExchange.runServer();
 				} catch (IOException e) {
 				}

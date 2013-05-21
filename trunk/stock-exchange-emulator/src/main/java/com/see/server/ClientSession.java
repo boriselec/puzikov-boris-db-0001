@@ -12,7 +12,7 @@ import com.see.common.utils.OrderExecutor;
 import com.see.common.utils.OrderVerifier;
 import com.see.common.utils.ResponseManager;
 import com.see.server.business.ServiceContainer;
-import com.see.server.network.TradingMessagerAPI;
+import com.see.server.network.TradingMessager;
 
 public class ClientSession implements Runnable {
 	private static Logger log = Logger.getLogger(ClientSession.class.getName());
@@ -20,7 +20,7 @@ public class ClientSession implements Runnable {
 	private final String clientName;
 	private final ServiceContainer serviceContainer;
 
-	private final TradingMessagerAPI messager;
+	private final TradingMessager messager;
 	private final ResponseManager responseManager;
 
 	private FilledObserver observer;
@@ -28,7 +28,7 @@ public class ClientSession implements Runnable {
 	private boolean isConnected = true;
 
 	public ClientSession(String clientName, ServiceContainer serviceContainer,
-			TradingMessagerAPI tradingMessager, ResponseManager responseManager) {
+			TradingMessager tradingMessager, ResponseManager responseManager) {
 		this.clientName = clientName;
 		this.serviceContainer = serviceContainer;
 		this.messager = tradingMessager;

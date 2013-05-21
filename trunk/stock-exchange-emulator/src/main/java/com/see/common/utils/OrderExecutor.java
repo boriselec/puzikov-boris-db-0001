@@ -8,14 +8,14 @@ import com.see.common.domain.TradeOrder;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.DisconnectException;
 import com.see.server.business.ServiceContainer;
-import com.see.server.network.TradingMessagerAPI;
+import com.see.server.network.TradingMessager;
 
 public class OrderExecutor {
-	private TradingMessagerAPI messager;
+	private TradingMessager messager;
 	private OrderVerifier orderVerifier;
 	private ServiceContainer serviceContainer;
 
-	public OrderExecutor(TradingMessagerAPI messager,
+	public OrderExecutor(TradingMessager messager,
 			ServiceContainer serviceContainer, OrderVerifier orderVerifier) {
 		this.orderVerifier = orderVerifier;
 		this.messager = messager;
@@ -35,7 +35,7 @@ public class OrderExecutor {
 		}
 		if (order instanceof CancelOrder) {
 			messager.sendOrderID(order.getOrderID());
-			serviceContainer.sendOrder(order);
+			serviceContainer.cancel((CancelOrder) order);
 			return true;
 
 		}

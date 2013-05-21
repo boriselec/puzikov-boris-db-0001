@@ -44,7 +44,7 @@ public class OrderBook {
 		}
 	}
 
-	private LinkedList<OrderBookResponse> removeOrder(CancelOrder cancelOrder) {
+	public LinkedList<OrderBookResponse> removeOrder(CancelOrder cancelOrder) {
 		LinkedList<OrderBookResponse> response = new LinkedList<>();
 		UUID orderID = cancelOrder.getCancelingOrderID();
 
