@@ -61,14 +61,8 @@ public class ClientSession implements Runnable {
 		if (delayedResponses != null) {
 			for (ClientResponse response : delayedResponses)
 				messager.sendResponse(response);
-
-			log.info(String.format("Sending %d delayed responses to client=%s",
-					delayedResponses.size(), clientName));
-		} else {
-			log.info(String.format("No delayed responses for client=%s",
-					clientName));
 		}
-		messager.sendSuccessfullLoginMessage();
+		messager.sendOkMessage();
 	}
 
 	private void listenSocket() throws IOException {
@@ -111,27 +105,15 @@ public class ClientSession implements Runnable {
 		observer = new FilledObserver(clientName) {
 			@Override
 			public void onFilled(OrderBookResponse orderBookResponse) {
-				System.out.println(orderBookResponse);
 				ClientResponse response = responseManager.createResponse(
 						orderBookResponse, clientName);
 				if (isConnected == true) {
-					log.info(String
-							.format("Send response to client: client=%s about order: orderID=%s",
-									clientName, response.getOrderID()
-											.toString()));
 					try {
 						messager.sendResponse(response);
 					} catch (IOException e) {
-						log.info(String
-								.format("Unable to send response to client: client=%s about order: orderID=%s",
-										clientName, response.getOrderID()
-												.toString()));
+						serviceContainer.addDelayedResponse(response);
 					}
 				} else {
-					log.info(String
-							.format("Add delayed response to client: client=%s about order: orderID=%s",
-									clientName, response.getOrderID()
-											.toString()));
 					serviceContainer.addDelayedResponse(response);
 				}
 			}

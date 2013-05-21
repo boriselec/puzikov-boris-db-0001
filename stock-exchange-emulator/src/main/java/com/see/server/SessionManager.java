@@ -31,7 +31,7 @@ public class SessionManager {
 
 	}
 
-	private HashMap<String, ClientSession> clientMap = new HashMap<>();
+	private HashMap<String, Thread> clientMap = new HashMap<>();
 
 	private String getLogin(TradingMessagerAPI tradingMessager)
 			throws NoLoginException {
@@ -53,7 +53,6 @@ public class SessionManager {
 		else {
 			ClientSession result = new ClientSession(clientLogin,
 					serviceContainer, tradingMessager, responseManager);
-			clientMap.put(clientLogin, result);
 			return result;
 		}
 	}
@@ -62,7 +61,15 @@ public class SessionManager {
 		Thread clientThread = new Thread(client);
 		Thread disconnector = new Thread(new Disconnector(client.getName(),
 				clientThread));
+		clientMap.put(client.getName(), clientThread);
 		disconnector.start();
 		clientThread.start();
+	}
+
+	public void close() {
+		for (String clientString : clientMap.keySet()) {
+			Thread clientThread = clientMap.remove(clientString);
+			clientThread.interrupt();
+		}
 	}
 }

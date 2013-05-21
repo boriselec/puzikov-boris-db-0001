@@ -1,6 +1,5 @@
 package com.see.common.utils;
 
-import java.util.Date;
 import java.util.UUID;
 
 import com.see.common.domain.CancelOrder;
@@ -41,7 +40,6 @@ public class OrderVerifier {
 			throw new BadOrderException("Order should hava positive quantity");
 		TradeOrder result = new TradeOrder(login, stockName, operation,
 				sharesCount, price);
-		result.setDate(new Date());
 		return result;
 	}
 

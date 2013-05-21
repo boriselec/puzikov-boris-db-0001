@@ -24,7 +24,7 @@ public class StockExchange {
 		this.serviceContainer = container;
 	}
 
-	private void runServer() throws IOException {
+	public void runServer() throws IOException {
 		serverSocket = new ServerSocket(DEFAULT_PORT, DEFAULT_QUEUE_LENGTH);
 		log.info("Stock exchange started");
 		SessionManager sessionManager = new SessionManager();

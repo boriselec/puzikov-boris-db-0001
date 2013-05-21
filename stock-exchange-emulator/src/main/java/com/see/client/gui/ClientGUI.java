@@ -49,12 +49,6 @@ public class ClientGUI extends JFrame {
 			log.info("new response received");
 		}
 
-		@Override
-		public void showError(String error) {
-			isConnected = false;
-			table.clearTable();
-			JOptionPane.showMessageDialog(contentPane, error);
-		}
 	};
 
 	private OrderVerifier orderVerifier = new OrderVerifier();

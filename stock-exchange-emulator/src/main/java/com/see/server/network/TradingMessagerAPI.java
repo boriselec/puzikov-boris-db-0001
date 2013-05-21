@@ -10,7 +10,7 @@ public interface TradingMessagerAPI {
 
 	public void connect(Socket socket) throws IOException;
 
-	public void sendSuccessfullLoginMessage() throws IOException;
+	public void sendOkMessage() throws IOException;
 
 	public void sendResponse(ClientResponse response) throws IOException;
 

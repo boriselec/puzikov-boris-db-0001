@@ -1,7 +1,6 @@
 package com.see.common.utils;
 
 import java.io.IOException;
-import java.util.Date;
 
 import com.see.common.domain.CancelOrder;
 import com.see.common.domain.Order;
@@ -35,7 +34,6 @@ public class OrderExecutor {
 			order = (Order) message;
 		}
 		if (order instanceof CancelOrder) {
-			order.setDate(new Date());
 			messager.sendOrderID(order.getOrderID());
 			serviceContainer.sendOrder(order);
 			return true;
@@ -48,7 +46,6 @@ public class OrderExecutor {
 			} catch (BadOrderException e) {
 				messager.sendBadOrderID();
 			}
-			order.setDate(new Date());
 			serviceContainer.sendOrder(order);
 			messager.sendOrderID(order.getOrderID());
 			return true;

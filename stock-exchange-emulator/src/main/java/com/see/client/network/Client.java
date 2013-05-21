@@ -8,11 +8,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import com.see.common.domain.ClientResponse;
+import com.see.common.domain.IDPair;
 import com.see.common.domain.Order;
-import com.see.common.domain.UUIDPair;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.NoLoginException;
 import com.see.common.network.NetworkMessager;
@@ -22,8 +23,14 @@ public class Client implements ClientAPI {
 	private static Logger log = Logger.getLogger(Client.class.getName());
 	private final static int DEFAULT_PORT = 2006;
 	private List<ResponseObserver> observers;
-	private HashMap<UUID, UUID> iDMap = new HashMap<>();
+	private HashMap<Integer, UUID> iDMap = new HashMap<>();
 	private Thread listenThread;
+	private AtomicInteger orderCount = new AtomicInteger();
+
+	private int getLocalOrderID() {
+		return orderCount.incrementAndGet();
+	}
+
 	private Runnable listenThreadRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -33,15 +40,14 @@ public class Client implements ClientAPI {
 					response = messager.readResponse();
 					if (response instanceof ClientResponse) {
 						notifyObservers((ClientResponse) response);
-					} else if (response instanceof UUIDPair) {
+					} else if (response instanceof IDPair) {
 						synchronized (iDMap) {
 
+							iDMap.put(((IDPair) response).getLocalUuid(),
+									((IDPair) response).getGlobalUuid());
 							iDMap.notifyAll();
-							iDMap.put(((UUIDPair) response).getLocalUuid(),
-									((UUIDPair) response).getGlobalUuid());
 						}
 					} else {
-						observers.get(0).showError((String) response);
 					}
 				} catch (IOException breakException) {
 					disconnect();
@@ -62,11 +68,7 @@ public class Client implements ClientAPI {
 		if ("".equals(loginName))
 			throw new NoLoginException("Empty login name");
 		try {
-			try {
-				createConnection();
-			} catch (Exception e) {
-				throw new NoLoginException("Unable to create connection");
-			}
+			createConnection();
 
 			messager.sendLogin(loginName);
 
@@ -74,6 +76,7 @@ public class Client implements ClientAPI {
 
 			listenThread = new Thread(listenThreadRunnable);
 			listenThread.start();
+
 		} catch (IOException | ClassNotFoundException | NoLoginException e) {
 			throw new NoLoginException(e.getMessage());
 		}
@@ -95,7 +98,7 @@ public class Client implements ClientAPI {
 
 	public UUID sendOrder(Order order) throws BadOrderException {
 		try {
-			UUID local = UUID.randomUUID();
+			int local = getLocalOrderID();
 			order.setLocalOrderID(local);
 			messager.sendOrder(order);
 
@@ -107,7 +110,7 @@ public class Client implements ClientAPI {
 		}
 	}
 
-	private UUID readID(UUID local) {
+	private UUID readID(int local) {
 		UUID result = null;
 		synchronized (iDMap) {
 			while (result == null) {
@@ -135,8 +138,6 @@ public class Client implements ClientAPI {
 		try {
 			messager.disconnect();
 		} catch (IOException e) {
-			observers.get(0).showError("Lost connection");
-			log.warning("Unable to close connection: " + e.getMessage());
 		}
 	}
 }

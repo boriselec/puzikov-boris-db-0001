@@ -2,17 +2,18 @@ package com.see.server.network;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
 import com.see.common.domain.ClientResponse;
+import com.see.common.domain.IDPair;
 import com.see.common.domain.Order;
-import com.see.common.domain.UUIDPair;
 import com.see.common.network.NetworkMessager;
 
 public class TradingMessager implements TradingMessagerAPI {
 
-	private HashMap<UUID, UUID> orderMap = new HashMap<>();
+	private HashMap<UUID, Integer> orderMap = new HashMap<>();
 
 	public TradingMessager(NetworkMessager messager) {
 		this.messager = messager;
@@ -21,7 +22,7 @@ public class TradingMessager implements TradingMessagerAPI {
 	private NetworkMessager messager;
 
 	@Override
-	public void sendSuccessfullLoginMessage() throws IOException {
+	public void sendOkMessage() throws IOException {
 		messager.write("Ok");
 	}
 
@@ -33,7 +34,7 @@ public class TradingMessager implements TradingMessagerAPI {
 	@Override
 	public void sendOrderID(UUID orderID) throws IOException {
 		if (orderMap.containsKey(orderID)) {
-			UUIDPair message = new UUIDPair(orderMap.remove(orderID), orderID);
+			IDPair message = new IDPair(orderMap.remove(orderID), orderID);
 			messager.write(message);
 		} else
 			throw new IllegalArgumentException("Bad orderID");
@@ -65,9 +66,12 @@ public class TradingMessager implements TradingMessagerAPI {
 	@Override
 	public Object readOrder() throws IOException {
 		Object message = messager.read();
-		if (message instanceof Order)
-			orderMap.put(((Order) message).getOrderID(),
-					((Order) message).getLocalOrderID());
+		if (message instanceof Order) {
+			UUID newID = UUID.randomUUID();
+			((Order) message).setOrderID(newID);
+			((Order) message).setDate(new Date());
+			orderMap.put(newID, ((Order) message).getLocalOrderID());
+		}
 		return message;
 	}
 
