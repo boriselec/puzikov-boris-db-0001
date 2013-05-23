@@ -2,79 +2,69 @@ package com.see.server.business;
 
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.see.common.domain.CancelOrder;
-import com.see.common.domain.CancelResponse;
-import com.see.common.domain.ErrorResponse;
-import com.see.common.domain.Order;
-import com.see.common.domain.OrderBookResponse;
 import com.see.common.domain.Trade;
-import com.see.common.domain.TradeOperation;
-import com.see.common.domain.TradeOrder;
-import com.see.server.business.OrderBook;
+import com.see.common.domain.OrderType;
+import com.see.common.domain.Order;
+import com.see.common.exception.CancelOrderException;
 
 public class OrderBookTest extends TestCase {
 
-	private OrderBook orderBook = new OrderBook();
-	private LinkedList<OrderBookResponse> responses;
+	private OrderBook orderBook = new OrderBookImpl();
+	private List<Trade> responses = new LinkedList<>();
 
-	private Order orderGetTest(TradeOperation type, int sharesCount,
+	private Order orderGetTest(OrderType type, int sharesCount,
 			float price, Date date) {
 
-		Order resultOrder = new TradeOrder("Test", "TEST", type, sharesCount,
-				price);
-		resultOrder.setDate(new Date());
-		return resultOrder;
-	}
-
-	private Order orderGetCancelTest(UUID orderID) {
-
-		Order resultOrder = new CancelOrder("TEST", "TEST", orderID);
-		resultOrder.setDate(new Date());
+		Order resultOrder = new Order(UUID.randomUUID(), "TEST", "TEST",
+				type, price, sharesCount, new Date());
 		return resultOrder;
 	}
 
 	@Test
 	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
-				(float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.BUY, 2, (float) 1.0,
+				new Date()));
+		responses = orderBook.fillOrders();
 
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				2, (float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.SELL, 2, (float) 1.0,
+				new Date()));
+
+		responses = orderBook.fillOrders();
 
 		assertEquals(responses.size(), 1);
-		assertEquals(responses.getFirst() instanceof Trade, true);
+
 		int numFullyFilled = getFullyFilledCount(responses);
 		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
 		assertEquals(numFullyFilled, 2);
 		assertEquals(numPartiallyFilled, 0);
 	}
 
-	private int getPartiallyFilledCoutn(LinkedList<OrderBookResponse> responses2) {
+	private int getPartiallyFilledCoutn(List<Trade> responses2) {
 		int count = 0;
-		for (OrderBookResponse response : responses2) {
-			if (((Trade) response).getBid().getSharesCount() > 0)
-				count++;
-			if (((Trade) response).getOffer().getSharesCount() > 0)
+		for (Trade response : responses2) {
+			if (response.getBid().getQuantity() != response.getOffer()
+					.getQuantity())
 				count++;
 		}
 		return count;
 	}
 
-	private int getFullyFilledCount(LinkedList<OrderBookResponse> responses2) {
+	private int getFullyFilledCount(List<Trade> responses2) {
 		int count = 0;
-		for (OrderBookResponse response : responses2) {
-			if (((Trade) response).getBid().getSharesCount() == 0)
-				count++;
-			if (((Trade) response).getOffer().getSharesCount() == 0)
+		for (Trade response : responses2) {
+			count++;
+			if (response.getBid().getQuantity() == response.getOffer()
+					.getQuantity())
 				count++;
 		}
 		return count;
@@ -82,27 +72,35 @@ public class OrderBookTest extends TestCase {
 
 	@Test
 	public void testShouldNotFilledWhenAddedNonMatchingPriceOrder() {
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
-				(float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.BUY, 2, (float) 1.0,
+				new Date()));
+		responses = orderBook.fillOrders();
+
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				2, (float) 2.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.SELL, 2, (float) 2.0,
+				new Date()));
+
+		responses = orderBook.fillOrders();
+
 		assertEquals(responses.size(), 0);
 
 	}
 
 	@Test
 	public void testShouldPartiallyFillWhenAddedPartiallyMathingBid() {
+		orderBook.placeOrder(orderGetTest(OrderType.BUY, 2, (float) 1.0,
+				new Date()));
+		responses = orderBook.fillOrders();
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 1,
-				(float) 1.0, new Date()));
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				2, (float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.SELL, 1, (float) 1.0,
+				new Date()));
+
+		responses = orderBook.fillOrders();
+
 		assertEquals(responses.size(), 1);
-		assertEquals(responses.getFirst() instanceof Trade, true);
 
 		int numFullyFilled = getFullyFilledCount(responses);
 		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
@@ -113,14 +111,18 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldPartiallyFillWhenAddedPartiallyMathingOffer() {
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				1, (float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.BUY, 1, (float) 1.0,
+				new Date()));
+		responses = orderBook.fillOrders();
+
 		assertEquals(responses.size(), 0);
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
-				(float) 1.0, new Date()));
+		orderBook.placeOrder(orderGetTest(OrderType.SELL, 2, (float) 1.0,
+				new Date()));
+
+		responses = orderBook.fillOrders();
+
 		assertEquals(responses.size(), 1);
-		assertEquals(responses.getFirst() instanceof Trade, true);
 
 		int numFullyFilled = getFullyFilledCount(responses);
 		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
@@ -131,52 +133,52 @@ public class OrderBookTest extends TestCase {
 
 	@Test
 	public void testShouldFillAllOrdersWhenAddedOneToManyMatchingOffer() {
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.OFFER,
-				2, (float) 1.0, new Date()));
-		assertEquals(responses.size(), 0);
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 1,
-				Float.POSITIVE_INFINITY, new Date()));
-		assertEquals(responses.size(), 1);
-		int numFullyFilled = getFullyFilledCount(responses);
-		int numPartiallyFilled = getPartiallyFilledCoutn(responses);
-		assertEquals(numFullyFilled, 1);
-		assertEquals(numPartiallyFilled, 1);
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 1,
-				Float.POSITIVE_INFINITY, new Date()));
-		assertEquals(responses.size(), 1);
-		numFullyFilled = getFullyFilledCount(responses);
-		numPartiallyFilled = getPartiallyFilledCoutn(responses);
-		assertEquals(numFullyFilled, 2);
-		assertEquals(numPartiallyFilled, 0);
+		for (int i = 0; i < 5; i++) {
+			orderBook.placeOrder(orderGetTest(OrderType.BUY, 1,
+					(float) 1.0, new Date()));
+			responses = orderBook.fillOrders();
+
+			assertEquals(responses.size(), 0);
+		}
+
+		orderBook.placeOrder(orderGetTest(OrderType.SELL, 5, (float) 1.0,
+				new Date()));
+
+		responses = orderBook.fillOrders();
+
+		assertEquals(responses.size(), 5);
 
 	}
 
 	@Test
 	public void testShouldCancelWhenReceiveCancelOrder() {
-		Order order = orderGetTest(TradeOperation.BID, 2, (float) 1.0,
+		Order order = orderGetTest(OrderType.BUY, 1, (float) 1.0,
 				new Date());
-		responses = orderBook.proceedOrder(order);
+		orderBook.placeOrder(order);
+		responses = orderBook.fillOrders();
 
-		assertEquals(responses.size(), 0);
-
-		responses = orderBook.proceedOrder(orderGetCancelTest(order
-				.getCancelingOrderID()));
-		assertEquals(responses.size(), 1);
-		assertEquals(responses.getFirst() instanceof CancelResponse, true);
+		try {
+			orderBook.cancelOrder(order.getOrderID());
+		} catch (CancelOrderException e) {
+			fail();
+		}
 
 	}
 
 	@Test
 	public void testShouldReturnErrorResponseWhenReceiveBadCancelOrder() {
 
-		responses = orderBook.proceedOrder(orderGetTest(TradeOperation.BID, 2,
-				(float) 1.0, new Date()));
+		Order order = orderGetTest(OrderType.BUY, 1, (float) 1.0,
+				new Date());
+		orderBook.placeOrder(order);
+		responses = orderBook.fillOrders();
 
-		UUID nonExistent = UUID.randomUUID();
-		responses = orderBook.proceedOrder(orderGetCancelTest(nonExistent));
-
-		assertEquals(responses.size(), 1);
-		assertEquals(responses.getFirst() instanceof ErrorResponse, true);
+		try {
+			orderBook.cancelOrder(UUID.randomUUID());
+			fail();
+		} catch (CancelOrderException e) {
+			assertTrue(true);
+		}
 
 	}
 }

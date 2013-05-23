@@ -27,19 +27,30 @@ public class StockExchange {
 	public void runServer() throws IOException {
 		serverSocket = new ServerSocket(DEFAULT_PORT, DEFAULT_QUEUE_LENGTH);
 		log.info("Stock exchange started");
+
 		SessionManager sessionManager = new SessionManager();
+		DelayedResponsesContainer delayedResponsesContainer = new DelayedResponsesContainer();
+		ResponseManager responseManager = new ResponseManager();
+
+		listenSocket(sessionManager, delayedResponsesContainer, responseManager);
+	}
+
+	private void listenSocket(SessionManager sessionManager,
+			DelayedResponsesContainer delayedResponsesContainer,
+			ResponseManager responseManager) throws IOException {
 		while (true) {
 			Socket newClientSocket = serverSocket.accept();
 
-			ResponseManager responseManager = new ResponseManager();
-			NetworkMessager networkMessager = new ObjectStreamMessager();
+			NetworkMessager networkMessager = new ObjectStreamMessager(
+					newClientSocket);
 			TradingMessager tradingMessager = new DefaultTradingMessager(
 					networkMessager);
-			tradingMessager.connect(newClientSocket);
+			tradingMessager.connect();
 
 			try {
 				ClientSession client = sessionManager.getClientSession(
-						serviceContainer, tradingMessager, responseManager);
+						serviceContainer, tradingMessager, responseManager,
+						delayedResponsesContainer);
 				sessionManager.startThread(client);
 			} catch (NoLoginException e) {
 				tradingMessager.sendError(e.getMessage());

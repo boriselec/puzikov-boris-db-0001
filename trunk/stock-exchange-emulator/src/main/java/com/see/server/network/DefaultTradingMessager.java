@@ -1,14 +1,14 @@
 package com.see.server.network;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.see.common.domain.ClientResponse;
-import com.see.common.domain.IDPair;
 import com.see.common.domain.Order;
+import com.see.common.message.IDPair;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
 
 public class DefaultTradingMessager implements TradingMessager {
@@ -27,22 +27,27 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void sendResponse(ClientResponse response) throws IOException {
+	public void sendResponse(TradeResponse response) throws IOException {
 		messager.write(response);
 	}
 
 	@Override
 	public void sendOrderID(UUID orderID) throws IOException {
 		if (orderMap.containsKey(orderID)) {
-			IDPair message = new IDPair(orderMap.remove(orderID), orderID);
+			IDPair message = new IDPair(orderMap.remove(orderID), orderID, true);
 			messager.write(message);
 		} else
 			throw new IllegalArgumentException("Bad orderID");
 	}
 
 	@Override
-	public void sendBadOrderID() throws IOException {
-		messager.write(null);
+	public void sendBadOrderID(UUID orderID) throws IOException {
+		if (orderMap.containsKey(orderID)) {
+			IDPair message = new IDPair(orderMap.remove(orderID), orderID,
+					false);
+			messager.write(message);
+		} else
+			throw new IllegalArgumentException("Bad orderID");
 	}
 
 	@Override
@@ -66,18 +71,25 @@ public class DefaultTradingMessager implements TradingMessager {
 	@Override
 	public Object readOrder() throws IOException {
 		Object message = messager.read();
-		if (message instanceof Order) {
+		if (message instanceof OrderMessage) {
+			OrderMessage order = (OrderMessage) message;
 			UUID newID = UUID.randomUUID();
-			((Order) message).setOrderID(newID);
-			((Order) message).setDate(new Date());
-			orderMap.put(newID, ((Order) message).getLocalOrderID());
+			Order result = new Order(newID, order.getClientName(),
+					order.getStockName(), order.getType(), order.getPrice(),
+					order.getQuantity(), new Date());
+			orderMap.put(newID, order.getLocalOrderID());
+			return result;
+		}
+		if (message instanceof IDPair) {
+			orderMap.put(((IDPair) message).getGlobalUuid(),
+					((IDPair) message).getLocalID());
 		}
 		return message;
 	}
 
 	@Override
-	public void connect(Socket socket) throws IOException {
-		messager.connect(socket);
+	public void connect() throws IOException {
+		messager.connect();
 	}
 
 	@Override

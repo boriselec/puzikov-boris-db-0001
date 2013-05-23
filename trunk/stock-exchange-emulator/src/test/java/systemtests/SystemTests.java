@@ -2,6 +2,7 @@ package systemtests;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -9,43 +10,41 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.see.client.network.DefaultClient;
-import com.see.client.network.ResponseObserver;
-import com.see.common.domain.ClientResponse;
-import com.see.common.domain.Order;
-import com.see.common.domain.Status;
-import com.see.common.domain.TradeOperation;
-import com.see.common.domain.TradeOrder;
+import com.see.client.network.TradeListener;
+import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 import com.see.server.StockExchange;
 import com.see.server.business.ServiceContainer;
 
 public class SystemTests extends TestCase {
 
 	private class ClientFake {
-		private ResponseObserver responseObserver = new ResponseObserver() {
+		private TradeListener responseObserver = new TradeListener() {
 			@Override
-			public void onResponse(ClientResponse response) {
+			public void onTrade(TradeResponse response) {
 				responses.add(response);
 			}
 		};
 		public DefaultClient client = new DefaultClient();
-		public ArrayList<ClientResponse> responses = new ArrayList<>();
-		public ArrayList<Order> orders = new ArrayList<>();
+		public ArrayList<TradeResponse> responses = new ArrayList<>();
+		public ArrayList<OrderMessage> orders = new ArrayList<>();
 
 		public ClientFake() {
 			client.addObserver(responseObserver);
 		}
 
-		public void sendOrder(Order order) throws BadOrderException {
+		public UUID sendOrder(OrderMessage order) throws BadOrderException {
 			orders.add(order);
-			client.sendOrder(order);
+			return client.sendOrder(order);
 		}
 
-		public void sendCancel(Order order) throws BadOrderException,
+		public void sendCancel(UUID orderID) throws BadOrderException,
 				CancelOrderException {
-			client.cancelOrder(order);
+			client.cancelOrder(orderID);
 		}
 
 	}
@@ -87,18 +86,13 @@ public class SystemTests extends TestCase {
 				client1 = new ClientFake();
 				try {
 					client1.client.login("Alice");
-					Order order = new TradeOrder("Alice", "IBM",
-							TradeOperation.BID, 1, (float) 1.0);
-					client1.sendOrder(order);
-					client1.sendCancel(order);
-					assertEquals(client1.responses.size(), 1);
-					assertEquals(client2.responses.get(0).getStatus(),
-							Status.FULLY_FILLED);
-					assertEquals(client1.responses.size(), 1);
-					assertEquals(client2.responses.get(0).getStatus(),
-							Status.FULLY_FILLED);
-				} catch (NoLoginException | BadOrderException e) {
-				} catch (CancelOrderException e) {
+					OrderMessage order = new OrderMessage("Alice", "IBM",
+							(float) 1.0, 1, OrderType.BUY);
+					UUID orderUuid = client1.sendOrder(order);
+					client1.sendCancel(orderUuid);
+				} catch (NoLoginException | BadOrderException
+						| CancelOrderException e) {
+					fail();
 				}
 			}
 
@@ -136,10 +130,11 @@ public class SystemTests extends TestCase {
 				client1 = new ClientFake();
 				try {
 					client1.client.login("Alice");
-					client1.sendOrder(new TradeOrder("Alice", "IBM",
-							TradeOperation.BID, 1, (float) 1.0));
+					client1.sendOrder(new OrderMessage("Alice", "IBM",
+							(float) 1.0, 1, OrderType.BUY));
 					assertEquals(client1.responses.size(), 1);
 				} catch (NoLoginException | BadOrderException e) {
+					fail();
 				}
 			}
 
@@ -151,12 +146,14 @@ public class SystemTests extends TestCase {
 				client2 = new ClientFake();
 				try {
 					client2.client.login("Bob");
-					client2.sendOrder(new TradeOrder("Bob", "IBM",
-							TradeOperation.OFFER, 1, (float) 1.0));
-					assertEquals(client2.responses.size(), 1);
-					assertEquals(client2.responses.get(0).getStatus(),
-							Status.FULLY_FILLED);
+					client2.sendOrder(new OrderMessage("Bob", "IBM",
+							(float) 1.0, 1, OrderType.SELL));
+					assertEquals(client2.responses.size(), 0);
+					assertEquals(client2.responses.get(0).getQuantity(), 1);
+					assertEquals(client2.responses.get(0).getCounterpart(),
+							"client1");
 				} catch (NoLoginException | BadOrderException e) {
+					fail();
 				}
 
 			}

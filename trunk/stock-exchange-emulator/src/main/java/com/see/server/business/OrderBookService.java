@@ -1,61 +1,59 @@
 package com.see.server.business;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
-import com.see.common.domain.CancelOrder;
 import com.see.common.domain.Order;
-import com.see.common.domain.OrderBookResponse;
-import com.see.server.FilledObserver;
+import com.see.common.domain.Trade;
+import com.see.common.exception.CancelOrderException;
+import com.see.server.TradeListener;
 
-public class OrderBookService {
-	private static Logger log = Logger.getLogger(OrderBook.class.getName());
+public class OrderBookService implements TradingService {
+	private static Logger log = Logger.getLogger(OrderBookImpl.class.getName());
 
 	public OrderBookService() {
-		orderBook = new OrderBook();
-		observers = new HashMap<String, FilledObserver>();
+		orderBook = new OrderBookImpl();
+		observers = new HashMap<String, TradeListener>();
 	}
 
 	private OrderBook orderBook;
-	private Map<String, FilledObserver> observers;
+	private Map<String, TradeListener> observers;
 
+	@Override
 	public void sendOrder(Order order) {
-		LinkedList<OrderBookResponse> responses = null;
-
-		responses = orderBook.proceedOrder(order);
+		orderBook.placeOrder(order);
+		List<Trade> responses = orderBook.fillOrders();
 		log.info(String.format(
 				"Order: orderID=%s proceeded %d responses generated", order
-						.getCancelingOrderID().toString(), responses.size()));
+						.getOrderID().toString(), responses.size()));
 
-		for (OrderBookResponse response : responses)
+		for (Trade response : responses)
 			notifyObservers(response);
 	}
 
-	public void sendCancelOrder(CancelOrder order) {
-		LinkedList<OrderBookResponse> responses = null;
-
-		responses = orderBook.removeOrder(order);
-		log.info(String.format(
-				"Order: orderID=%s proceeded %d responses generated", order
-						.getCancelingOrderID().toString(), responses.size()));
-
-		for (OrderBookResponse response : responses)
-			notifyObservers(response);
-
+	@Override
+	public void cancelOrder(UUID orderID) throws CancelOrderException {
+		orderBook.cancelOrder(orderID);
 	}
 
-	public void addObserver(FilledObserver observer) {
+	@Override
+	public void addObserver(TradeListener observer) {
 		observers.put(observer.getClientName(), observer);
 	}
 
-	public void removeObserver(FilledObserver observer) {
+	@Override
+	public void removeObserver(TradeListener observer) {
 		observers.remove(observer);
 	}
 
-	private void notifyObservers(OrderBookResponse response) {
-		for (String to : response.getTo())
-			observers.get(to).onFilled(response);
+	private void notifyObservers(Trade trade) {
+		String bidClient = trade.getBid().getClientName();
+		String offerClient = trade.getOffer().getClientName();
+		observers.get(bidClient).onTrade(trade);
+		observers.get(offerClient).onTrade(trade);
 	}
+
 }

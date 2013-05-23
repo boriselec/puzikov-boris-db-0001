@@ -6,10 +6,10 @@ import java.util.UUID;
 
 import javax.swing.table.DefaultTableModel;
 
-import com.see.common.domain.ClientResponse;
 import com.see.common.domain.Status;
-import com.see.common.domain.TradeOperation;
-import com.see.common.domain.TradeOrder;
+import com.see.common.domain.OrderType;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 
 public class TableRepresentation {
 	public TableRepresentation(DefaultTableModel dataTable) {
@@ -19,42 +19,73 @@ public class TableRepresentation {
 	private SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm:ss");
 	private DefaultTableModel dataTable;
 
-	public void drawTradeOrder(UUID orderID, TradeOrder order) {
-		drawRaw(orderID, order.getStockName(), Status.SEND,
-				order.getSharesCount(), 0, Float.NaN, order.getType(),
-				order.getPrice(), new Date());
-	}
-
-	public void drawCancelOrder() {
-	}
-
-	public void drawResponse(ClientResponse response) {
-		int index;
+	public void drawTradeOrder(UUID orderID, OrderMessage order) {
 		try {
-			index = getOrderIndex(response.getOrderID());
+			getOrderIndex(orderID);
+		} catch (IllegalArgumentException e) {
+			drawRaw(orderID, order.getStockName(), Status.SEND,
+					order.getQuantity(), 0, (float) 0.0, order.getType(),
+					order.getPrice(), new Date());
+		}
+	}
+
+	public void drawResponse(TradeResponse response) {
+		String symbol = "unknown";
+		Status status = Status.PARTIALLY_FILLED;
+		int quantity = response.getQuantity();
+		int tradedShares = response.getQuantity();
+		float dealPrice = response.getPrice();
+		OrderType tradeOperation = null;
+		float price = response.getPrice();
+
+		try {
+			int index = getOrderIndex(response.getOrderID());
+			symbol = (String) dataTable.getValueAt(index, 1);
+			quantity = (int) dataTable.getValueAt(index, 3);
+			price = (float) dataTable.getValueAt(index, 7);
+			tradedShares = (int) dataTable.getValueAt(index, 4);
+			dealPrice = (float) dataTable.getValueAt(index, 5);
+			if (dealPrice == Float.NaN)
+				dealPrice = 0;
+			dealPrice = (response.getPrice() * response.getQuantity() + dealPrice
+					* tradedShares)
+					/ (response.getQuantity() + tradedShares);
+			tradedShares += response.getQuantity();
+			if (tradedShares == quantity)
+				status = Status.FULLY_FILLED;
+			else
+				status = Status.PARTIALLY_FILLED;
+			tradeOperation = (OrderType) dataTable.getValueAt(index, 6);
 			dataTable.removeRow(index);
 		} catch (IllegalArgumentException e) {
 		}
-		drawRaw(response.getOrderID(), response.getSymbol(),
-				response.getStatus(), response.getRequestedShares(),
-				response.getTradedShares(), response.getDealPrice(),
-				response.getTradeOperation(), response.getPrice(),
-				response.getDate());
+		drawRaw(response.getOrderID(), symbol, status, quantity, tradedShares,
+				dealPrice, tradeOperation, price, response.getDate());
+	}
+
+	public void drawCancel(UUID orderID) {
+		try {
+			int index = getOrderIndex(orderID);
+			dataTable.setValueAt(Status.CANCELED, index, 2);
+		} catch (IllegalArgumentException e) {
+			return;
+		}
+
 	}
 
 	private void drawRaw(UUID uuid, String stock, Status status, int quantity,
-			int tradedShares, float price, TradeOperation type, float limit,
+			int tradedShares, float price, OrderType type, float limit,
 			Date date) {
 
-		String limitString;
-		if (limit == Float.POSITIVE_INFINITY
-				|| limit == Float.NEGATIVE_INFINITY)
-			limitString = "MARKET";
-		else
-			limitString = ((Float) limit).toString();
+		// String limitString;
+		// if (limit == Float.POSITIVE_INFINITY
+		// || limit == Float.NEGATIVE_INFINITY)
+		// limitString = "MARKET";
+		// else
+		// limitString = ((Float) limit).toString();
 		String dateString = (date == null) ? "" : dateFormater.format(date);
 		dataTable.addRow(new Object[] { uuid, stock, status, quantity,
-				tradedShares, price, type, limitString, dateString });
+				tradedShares, price, type, limit, dateString });
 	}
 
 	private int getOrderIndex(UUID uuid) {

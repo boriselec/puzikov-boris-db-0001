@@ -23,14 +23,13 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.see.client.network.DefaultClient;
-import com.see.client.network.ResponseObserver;
-import com.see.common.domain.ClientResponse;
-import com.see.common.domain.Order;
-import com.see.common.domain.Status;
-import com.see.common.domain.TradeOperation;
-import com.see.common.domain.TradeOrder;
+import com.see.client.network.TradeListener;
+import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
+import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 import com.see.common.utils.OrderVerifier;
 
 @SuppressWarnings("serial")
@@ -39,12 +38,9 @@ public class ClientGUI extends JFrame {
 	private String login;
 	boolean isConnected = false;
 
-	private ResponseObserver responseObserver = new ResponseObserver() {
+	private TradeListener responseObserver = new TradeListener() {
 		@Override
-		public void onResponse(ClientResponse response) {
-			if (response.getStatus() == Status.ERROR)
-				JOptionPane.showMessageDialog(contentPane,
-						response.getMessage());
+		public void onTrade(TradeResponse response) {
 			table.drawResponse(response);
 			log.info("new response received");
 		}
@@ -271,14 +267,14 @@ public class ClientGUI extends JFrame {
 
 	private void sendOrderClick() {
 		String stockName = symbolTextField.getText();
-		TradeOperation type = (buyRadioButton.getSelectedObjects() != null) ? TradeOperation.BID
-				: TradeOperation.OFFER;
+		OrderType type = (buyRadioButton.getSelectedObjects() != null) ? OrderType.BUY
+				: OrderType.SELL;
 		String limitOrMarket = (limitRadioButton.getSelectedObjects() != null) ? "limit"
 				: "market";
 		String price = priceTextField.getText();
 		String sharesCount = quantityTextField.getText();
 		try {
-			TradeOrder order = orderVerifier.getTradeOrder(login, stockName,
+			OrderMessage order = orderVerifier.getTradeOrder(login, stockName,
 					type, limitOrMarket, price, sharesCount);
 			clearTextFields();
 			UUID orderId = client.sendOrder(order);
@@ -308,7 +304,6 @@ public class ClientGUI extends JFrame {
 		}
 		String statusString = table.getStatus(index);
 		UUID orderID = table.getOrderID(index);
-		String stockNameString = table.getStockName(index);
 		if (statusString == "CANCELED" || statusString == "SEND CANCEL") {
 			JOptionPane.showMessageDialog(contentPane, "Already canceled");
 			return;
@@ -318,14 +313,13 @@ public class ClientGUI extends JFrame {
 			return;
 		}
 
-		Order cancelOrder = orderVerifier.getCancelOrder(login,
-				stockNameString, orderID);
 		log.info(String.format("Send cancel for order: orderID=%s",
 				orderID.toString()));
 		try {
-			client.sendOrder(cancelOrder);
+			client.cancelOrder(orderID);
 			log.info("Send to cancel order");
-		} catch (BadOrderException e) {
+			table.drawCancel(orderID);
+		} catch (CancelOrderException e) {
 			JOptionPane.showMessageDialog(contentPane, "Can't cancel order. "
 					+ e.getMessage());
 			log.info("Failed to cancel order");

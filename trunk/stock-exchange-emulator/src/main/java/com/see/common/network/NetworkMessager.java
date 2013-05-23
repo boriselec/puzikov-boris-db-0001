@@ -1,11 +1,10 @@
 package com.see.common.network;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public interface NetworkMessager {
 
-	public void connect(Socket socket) throws IOException;
+	public void connect() throws IOException;
 
 	public void write(Object message) throws IOException;
 

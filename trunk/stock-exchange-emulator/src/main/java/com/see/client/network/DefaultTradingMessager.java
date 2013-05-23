@@ -1,12 +1,12 @@
 package com.see.client.network;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.LinkedList;
 
-import com.see.common.domain.ClientResponse;
-import com.see.common.domain.Order;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.IDPair;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
 
 public class DefaultTradingMessager implements TradingMessager {
@@ -20,11 +20,6 @@ public class DefaultTradingMessager implements TradingMessager {
 	@Override
 	public Object readResponse() throws IOException {
 		return messager.read();
-	}
-
-	@Override
-	public void connect(Socket socket) throws IOException {
-		messager.connect(socket);
 	}
 
 	@Override
@@ -43,14 +38,14 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void sendOrder(Order order) throws IOException {
+	public void sendOrder(OrderMessage order) throws IOException {
 		messager.write(order);
 	}
 
 	@Override
-	public LinkedList<ClientResponse> readDelayedResponses()
+	public LinkedList<TradeResponse> readDelayedResponses()
 			throws NoLoginException, IOException {
-		LinkedList<ClientResponse> result = new LinkedList<>();
+		LinkedList<TradeResponse> result = new LinkedList<>();
 		while (true) {
 			Object messageObject = messager.read();
 			if (messageObject instanceof String)
@@ -58,12 +53,22 @@ public class DefaultTradingMessager implements TradingMessager {
 					break;
 				else
 					throw new NoLoginException((String) messageObject);
-			else if (messageObject instanceof ClientResponse) {
-				result.add((ClientResponse) messageObject);
+			else if (messageObject instanceof TradeResponse) {
+				result.add((TradeResponse) messageObject);
 			} else
 				throw new NoLoginException("Wrong server response");
 		}
 		return result;
+	}
+
+	@Override
+	public void sendCancel(IDPair cancelingOrderID) throws IOException {
+		messager.write(cancelingOrderID);
+	}
+
+	@Override
+	public void connect() throws IOException {
+		this.messager.connect();
 	}
 
 }

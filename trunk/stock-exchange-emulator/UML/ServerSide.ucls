@@ -28,8 +28,8 @@
       <operations public="true" package="false" protected="false" private="false"/>    
     </display>  
   </class>  
-  <interface id="4" language="java" name="com.see.server.TradingServise" project="SEE" 
-    file="/SEE/src/main/java/com/see/server/TradingServise.java" binary="false" corner="BOTTOM_RIGHT">    
+  <interface id="4" language="java" name="com.see.server.business.TradingServise" project="SEE" 
+    file="/SEE/src/main/java/com/see/server/business/TradingServise.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="165" y="279"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
       visibility="true">      
@@ -73,8 +73,8 @@
       <operations public="true" package="false" protected="false" private="false"/>    
     </display>  
   </class>  
-  <class id="9" language="java" name="com.see.server.business.OrderBook" project="SEE" 
-    file="/SEE/src/main/java/com/see/server/business/OrderBook.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="9" language="java" name="com.see.server.business.OrderBookImpl" project="SEE" 
+    file="/SEE/src/main/java/com/see/server/business/OrderBookImpl.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="539" y="694"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
       visibility="true">      
