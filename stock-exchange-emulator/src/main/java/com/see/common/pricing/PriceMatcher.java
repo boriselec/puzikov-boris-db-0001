@@ -1,7 +1,18 @@
 package com.see.common.pricing;
 
-import com.see.common.domain.TradeOrder;
+import com.see.common.domain.Order;
 
 public interface PriceMatcher {
-	float match(TradeOrder o1, TradeOrder o2, float lastDealPrice);
+	/**
+	 * 
+	 * pair of orders
+	 * 
+	 * @param o1
+	 * @param o2
+	 * 
+	 * @param lastDealPrice
+	 *            price of last deal in current orderbook
+	 * @return deal price for o1 and o2
+	 */
+	float getPrice(Order o1, Order o2, float lastDealPrice);
 }

@@ -1,24 +1,23 @@
 package com.see.common.domain;
 
-public class Trade extends OrderBookResponse {
-	public Trade(TradeOrder bid, TradeOrder offer, float price, int shares) {
-		super(bid.getLogin(), offer.getLogin());
+public class Trade {
+	public Trade(Order bid, Order offer, float price, int shares) {
 		this.bid = bid;
 		this.offer = offer;
 		this.price = price;
 		this.shares = shares;
 	}
 
-	private final TradeOrder bid;
-	private final TradeOrder offer;
+	private final Order bid;
+	private final Order offer;
 	private final float price;
 	private final int shares;
 
-	public TradeOrder getBid() {
+	public Order getBid() {
 		return bid;
 	}
 
-	public TradeOrder getOffer() {
+	public Order getOffer() {
 		return offer;
 	}
 

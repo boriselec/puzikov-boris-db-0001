@@ -11,23 +11,22 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import com.see.common.domain.CancelOrder;
-import com.see.common.domain.ClientResponse;
-import com.see.common.domain.IDPair;
-import com.see.common.domain.Order;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.IDPair;
+import com.see.common.message.OrderMessage;
+import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
 import com.see.common.network.ObjectStreamMessager;
-import com.see.common.utils.OrderVerifier;
 
 public class DefaultClient implements Client {
 	private static Logger log = Logger.getLogger(DefaultClient.class.getName());
 	private final static int DEFAULT_PORT = 2006;
-	private List<ResponseObserver> observers;
-	private HashMap<Integer, UUID> iDMap = new HashMap<>();
+	private List<TradeListener> observers;
+	private HashMap<Integer, IDPair> iDMap = new HashMap<>();
 	private Thread listenThread;
+	private TradingMessager messager;
 	private AtomicInteger orderCount = new AtomicInteger();
 
 	private int getLocalOrderID() {
@@ -39,32 +38,29 @@ public class DefaultClient implements Client {
 		public void run() {
 			while (true) {
 				try {
-					Object response = null;
-					response = messager.readResponse();
-					if (response instanceof ClientResponse) {
-						notifyObservers((ClientResponse) response);
+					Object response = messager.readResponse();
+					if (response instanceof TradeResponse) {
+						notifyObservers((TradeResponse) response);
 					} else if (response instanceof IDPair) {
 						synchronized (iDMap) {
 
-							iDMap.put(((IDPair) response).getLocalUuid(),
-									((IDPair) response).getGlobalUuid());
+							iDMap.put(((IDPair) response).getLocalID(),
+									(IDPair) response);
 							iDMap.notifyAll();
 						}
 					} else {
 					}
 				} catch (IOException breakException) {
+					breakException.printStackTrace();
 					disconnect();
 					break;
 				}
 			}
 		}
 	};
-	private TradingMessager messager;
 
 	public DefaultClient() {
-		this.observers = new ArrayList<ResponseObserver>();
-		NetworkMessager networkMessager = new ObjectStreamMessager();
-		this.messager = new DefaultTradingMessager(networkMessager);
+		this.observers = new ArrayList<TradeListener>();
 	}
 
 	public void login(String loginName) throws NoLoginException {
@@ -87,25 +83,32 @@ public class DefaultClient implements Client {
 
 	private void createConnection() throws UnknownHostException, IOException {
 		Socket socket = new Socket("localhost", DEFAULT_PORT);
-		messager.connect(socket);
+		NetworkMessager networkMessager = new ObjectStreamMessager(socket);
+		networkMessager.connect();
+		this.messager = new DefaultTradingMessager(networkMessager);
 	}
 
 	private void readDelayedResponses() throws ClassNotFoundException,
 			IOException, NoLoginException {
-		LinkedList<ClientResponse> delayedResponses = new LinkedList<>();
-		delayedResponses = messager.readDelayedResponses();
+		LinkedList<TradeResponse> delayedResponses = new LinkedList<>();
+		delayedResponses = (LinkedList<TradeResponse>) messager
+				.readDelayedResponses();
 
-		for (ClientResponse response : delayedResponses)
+		for (TradeResponse response : delayedResponses)
 			notifyObservers(response);
 	}
 
-	public UUID sendOrder(Order order) throws BadOrderException {
+	public UUID sendOrder(OrderMessage order) throws BadOrderException {
 		try {
 			int local = getLocalOrderID();
 			order.setLocalOrderID(local);
 			messager.sendOrder(order);
 
-			return readID(local);
+			IDPair result = readID(local);
+			if (result.isPlaced())
+				return result.getGlobalUuid();
+			else
+				throw new BadOrderException();
 
 		} catch (IOException e) {
 			log.warning("Bad server response");
@@ -113,8 +116,8 @@ public class DefaultClient implements Client {
 		}
 	}
 
-	private UUID readID(int local) {
-		UUID result = null;
+	private IDPair readID(int local) {
+		IDPair result = null;
 		synchronized (iDMap) {
 			while (result == null) {
 				try {
@@ -127,13 +130,13 @@ public class DefaultClient implements Client {
 		}
 	}
 
-	public void addObserver(ResponseObserver observer) {
+	public void addObserver(TradeListener observer) {
 		observers.add(observer);
 	}
 
-	private void notifyObservers(ClientResponse response) {
-		for (ResponseObserver observer : observers) {
-			observer.onResponse(response);
+	private void notifyObservers(TradeResponse response) {
+		for (TradeListener observer : observers) {
+			observer.onTrade(response);
 		}
 	}
 
@@ -144,14 +147,17 @@ public class DefaultClient implements Client {
 		}
 	}
 
-	@Override
-	public void cancelOrder(Order order) throws CancelOrderException {
-
-		CancelOrder cancelOrder = new OrderVerifier().getCancelOrder(
-				order.getLogin(), order.getStockName(), order.getOrderID());
+	public void cancelOrder(UUID orderID) throws CancelOrderException {
 		try {
-			messager.sendOrder(cancelOrder);
+			int local = getLocalOrderID();
+			messager.sendCancel(new IDPair(local, orderID));
+
+			UUID canceledID = readID(local).getGlobalUuid();
+			System.out.println(canceledID);
+			if (canceledID.equals(orderID) == false)
+				throw new CancelOrderException("Unable to cancel");
 		} catch (IOException e) {
+			log.warning("Bad server response");
 			throw new CancelOrderException("Bad server response");
 		}
 	}

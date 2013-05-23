@@ -1,15 +1,13 @@
 package com.see.common.utils;
 
-import java.util.UUID;
-
-import com.see.common.domain.CancelOrder;
-import com.see.common.domain.TradeOperation;
-import com.see.common.domain.TradeOrder;
+import com.see.common.domain.Order;
+import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
+import com.see.common.message.OrderMessage;
 
 public class OrderVerifier {
-	public TradeOrder getTradeOrder(String login, String stockName,
-			TradeOperation operation, String type, String priceString,
+	public OrderMessage getTradeOrder(String login, String stockName,
+			OrderType operation, String type, String priceString,
 			String sharesCountString) throws BadOrderException {
 
 		if ("".equals(stockName))
@@ -26,7 +24,7 @@ public class OrderVerifier {
 				throw new BadOrderException(
 						"Limit order should hava positive price");
 		} else {
-			price = (operation == TradeOperation.BID) ? Float.POSITIVE_INFINITY
+			price = (operation == OrderType.BUY) ? Float.POSITIVE_INFINITY
 					: Float.NEGATIVE_INFINITY;
 		}
 
@@ -38,35 +36,28 @@ public class OrderVerifier {
 		}
 		if (sharesCount <= 0)
 			throw new BadOrderException("Order should hava positive quantity");
-		TradeOrder result = new TradeOrder(login, stockName, operation,
-				sharesCount, price);
+		OrderMessage result = new OrderMessage(login, stockName, price,
+				sharesCount, operation);
 		return result;
 	}
 
-	public CancelOrder getCancelOrder(String login, String stockName,
-			UUID orderID) {
-		CancelOrder result = new CancelOrder(login, stockName, orderID);
-		return result;
-	}
-
-	public void verifyTradeOrder(TradeOrder order, String[] tickerSymbols)
+	public void verifyTradeOrder(Order message, String[] tickerSymbols)
 			throws BadOrderException {
 		boolean isFound = false;
 		for (String ticker : tickerSymbols)
-			if (ticker.equals(order.getStockName())) {
+			if (ticker.equals(message.getStock())) {
 				isFound = true;
 				break;
 			}
 		if (isFound == false)
 			throw new BadOrderException(String.format(
-					"Stock exchange don't trade %s ticker",
-					order.getStockName()));
+					"Stock exchange don't trade %s ticker", message.getStock()));
 
-		if (order.getSharesCount() <= 0)
+		if (message.getQuantity() <= 0)
 			throw new BadOrderException("Order shares count should be positive");
 
-		if (order.getPrice() <= 0
-				&& order.getPrice() != Float.NEGATIVE_INFINITY)
+		if (message.getPrice() <= 0
+				&& message.getPrice() != Float.NEGATIVE_INFINITY)
 			throw new BadOrderException("Order price should be positive");
 	}
 }

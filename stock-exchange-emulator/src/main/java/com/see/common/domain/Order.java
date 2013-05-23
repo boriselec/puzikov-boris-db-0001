@@ -1,59 +1,61 @@
 package com.see.common.domain;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-public abstract class Order implements Serializable {
+public class Order {
 
-	private static final long serialVersionUID = 6690070311631397742L;
+	final private UUID orderID;
+	final private String clientName;
 
-	public Order(String login, String stockName) {
-		this.login = login;
-		this.stockName = stockName;
-	}
+	final private String stock;
 
-	private final String stockName;
-	private final String login;
-	private Date date;
-	private UUID orderID;
+	final private OrderType type;
+	final private float price;
+	final private int quantity;
+	final private Date date;
 
-	public void setOrderID(UUID orderID) {
+	public Order(UUID orderID, String clientName, String stock,
+			OrderType type, float price, int quantity, Date date) {
 		this.orderID = orderID;
-	}
-
-	private Integer localOrderID;
-
-	public String getStockName() {
-		return stockName;
-	}
-
-	public String getLogin() {
-		return login;
-	}
-
-	public UUID getCancelingOrderID() {
-		return this.orderID;
+		this.clientName = clientName;
+		this.stock = stock;
+		this.type = type;
+		this.price = price;
+		this.quantity = quantity;
+		this.date = date;
 	}
 
 	public UUID getOrderID() {
-		return this.orderID;
+		return orderID;
+	}
+
+	public OrderType getType() {
+		return type;
+	}
+
+	public float getPrice() {
+		return price;
+	}
+
+	public int getQuantity() {
+		return quantity;
 	}
 
 	public Date getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
-		this.date = date;
+	public Order getPartiallyFilledOrder(int quantity) {
+		return new Order(this.orderID, this.clientName, this.stock, this.type,
+				this.price, this.quantity - quantity, this.date);
 	}
 
-	public Integer getLocalOrderID() {
-		return localOrderID;
+	public String getStock() {
+		return stock;
 	}
 
-	public void setLocalOrderID(Integer id) {
-		this.localOrderID = id;
+	public String getClientName() {
+		return clientName;
 	}
-
 }

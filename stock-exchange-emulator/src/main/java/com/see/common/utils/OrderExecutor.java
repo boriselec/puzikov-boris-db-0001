@@ -1,55 +1,55 @@
 package com.see.common.utils;
 
 import java.io.IOException;
+import java.util.UUID;
 
-import com.see.common.domain.CancelOrder;
 import com.see.common.domain.Order;
-import com.see.common.domain.TradeOrder;
 import com.see.common.exception.BadOrderException;
+import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.DisconnectException;
+import com.see.common.message.IDPair;
 import com.see.server.business.ServiceContainer;
 import com.see.server.network.TradingMessager;
 
 public class OrderExecutor {
 	private TradingMessager messager;
-	private OrderVerifier orderVerifier;
 	private ServiceContainer serviceContainer;
+	private OrderVerifier orderVerifier = new OrderVerifier();
 
 	public OrderExecutor(TradingMessager messager,
-			ServiceContainer serviceContainer, OrderVerifier orderVerifier) {
-		this.orderVerifier = orderVerifier;
+			ServiceContainer serviceContainer) {
 		this.messager = messager;
 		this.serviceContainer = serviceContainer;
 	}
 
-	public boolean execute(String login, Object message)
-			throws DisconnectException, IOException {
+	public void execute(String login, Object message)
+			throws DisconnectException, IOException, BadOrderException {
 		if (message instanceof String) {
 			if ("disconnect".equals((String) message)) {
 				throw new DisconnectException();
 			}
-		}
-		Order order = null;
-		if (message instanceof Order) {
-			order = (Order) message;
-		}
-		if (order instanceof CancelOrder) {
-			messager.sendOrderID(order.getOrderID());
-			serviceContainer.cancel((CancelOrder) order);
-			return true;
-
-		}
-		if (order instanceof TradeOrder) {
+		} else if (message instanceof IDPair) {
+			// cancel
 			try {
-				orderVerifier.verifyTradeOrder((TradeOrder) order,
+				UUID cancelingID = ((IDPair) message).getGlobalUuid();
+				serviceContainer.cancelOrder(cancelingID);
+				messager.sendOrderID(cancelingID);
+			} catch (CancelOrderException e) {
+				messager.sendOrderID(UUID.fromString("0"));
+			}
+		} else if (message instanceof Order) {
+			try {
+				orderVerifier.verifyTradeOrder((Order) message,
 						serviceContainer.getTickerSymbols());
 			} catch (BadOrderException e) {
-				messager.sendBadOrderID();
+				messager.sendBadOrderID(((Order) message).getOrderID());
+				return;
 			}
-			serviceContainer.sendOrder(order);
-			messager.sendOrderID(order.getOrderID());
-			return true;
+			messager.sendOrderID(((Order) message).getOrderID());
+			serviceContainer.sendOrder((Order) message);
 		}
-		return false;
+
+		else
+			throw new BadOrderException();
 	}
 }

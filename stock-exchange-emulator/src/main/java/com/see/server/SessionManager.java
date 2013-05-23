@@ -45,14 +45,16 @@ public class SessionManager {
 	}
 
 	public ClientSession getClientSession(ServiceContainer serviceContainer,
-			TradingMessager tradingMessager, ResponseManager responseManager)
+			TradingMessager tradingMessager, ResponseManager responseManager,
+			DelayedResponsesContainer delayedResponsesContainer)
 			throws NoLoginException {
 		String clientLogin = getLogin(tradingMessager);
 		if (clientMap.containsKey(clientLogin))
 			throw new NoLoginException("Server: Already connected");
 		else {
 			ClientSession result = new ClientSession(clientLogin,
-					serviceContainer, tradingMessager, responseManager);
+					serviceContainer, tradingMessager, responseManager,
+					delayedResponsesContainer);
 			return result;
 		}
 	}
