@@ -14,8 +14,8 @@ import com.see.server.TradeListener;
 public class OrderBookService implements TradingService {
 	private static Logger log = Logger.getLogger(OrderBookImpl.class.getName());
 
-	public OrderBookService() {
-		orderBook = new OrderBookImpl();
+	public OrderBookService(OrderBook orderBook) {
+		this.orderBook = orderBook;
 		observers = new HashMap<String, TradeListener>();
 	}
 
@@ -23,7 +23,7 @@ public class OrderBookService implements TradingService {
 	private Map<String, TradeListener> observers;
 
 	@Override
-	public void sendOrder(Order order) {
+	public void placeOrder(Order order) {
 		orderBook.placeOrder(order);
 		List<Trade> responses = orderBook.fillOrders();
 		log.info(String.format(

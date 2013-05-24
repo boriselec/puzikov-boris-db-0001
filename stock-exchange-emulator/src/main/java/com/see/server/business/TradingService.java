@@ -8,7 +8,7 @@ import com.see.server.TradeListener;
 
 public interface TradingService {
 
-	public void sendOrder(Order order);
+	public void placeOrder(Order order);
 
 	public void cancelOrder(UUID orderID) throws CancelOrderException;
 

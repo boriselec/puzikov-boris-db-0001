@@ -2,11 +2,14 @@ package com.see.server;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.see.common.domain.Trade;
 import com.see.common.exception.BadOrderException;
+import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.DisconnectException;
 import com.see.common.message.TradeResponse;
 import com.see.common.utils.OrderExecutor;
@@ -28,11 +31,15 @@ public class ClientSession implements Runnable {
 
 	private boolean isConnected = true;
 
+	private HashSet<String> clientMap;
+
 	public ClientSession(String clientName, ServiceContainer serviceContainer,
-			TradingMessager tradingMessager, ResponseManager responseManager,
+			HashSet<String> clientMap, TradingMessager tradingMessager,
+			ResponseManager responseManager,
 			DelayedResponsesContainer delayedResponsesContainer) {
 		this.clientName = clientName;
 		this.serviceContainer = serviceContainer;
+		this.clientMap = clientMap;
 		this.messager = tradingMessager;
 		this.responseManager = responseManager;
 		this.delayedResponsesContainer = delayedResponsesContainer;
@@ -69,19 +76,20 @@ public class ClientSession implements Runnable {
 	}
 
 	private void listenSocket() throws IOException {
-		OrderExecutor orderExecutor = new OrderExecutor(messager,
-				serviceContainer);
+		OrderExecutor orderExecutor = new OrderExecutor(serviceContainer);
 		while (true) {
 			try {
 				Object message = messager.readOrder();
-				orderExecutor.execute(clientName, message);
+				UUID orderIDUuid = orderExecutor.execute(clientName, message);
+				messager.sendOrderID(orderIDUuid);
 			} catch (BadOrderException e) {
-				log.warning("Bad order request");
+				messager.sendBadOrderID(e.getOrderID());
+			} catch (CancelOrderException e) {
 				messager.sendBadOrderID(null);
 			} catch (SocketException | DisconnectException closeException) {
 				disconnectClient();
-				isConnected = false;
 				return;
+
 			}
 
 		}
@@ -90,6 +98,8 @@ public class ClientSession implements Runnable {
 	private void disconnectClient() {
 		try {
 			serviceContainer.removeObserver(listener);
+			isConnected = false;
+			clientMap.remove(clientName);
 			messager.disconnect();
 			log.info(String
 					.format("Client disconnected: client=%s", clientName));

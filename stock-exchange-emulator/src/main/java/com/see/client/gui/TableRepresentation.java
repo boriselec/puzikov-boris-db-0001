@@ -6,8 +6,8 @@ import java.util.UUID;
 
 import javax.swing.table.DefaultTableModel;
 
-import com.see.common.domain.Status;
 import com.see.common.domain.OrderType;
+import com.see.common.domain.Status;
 import com.see.common.message.OrderMessage;
 import com.see.common.message.TradeResponse;
 
@@ -21,7 +21,18 @@ public class TableRepresentation {
 
 	public void drawTradeOrder(UUID orderID, OrderMessage order) {
 		try {
-			getOrderIndex(orderID);
+			int index = getOrderIndex(orderID);
+			int tradedShares = (int) dataTable.getValueAt(index, 4);
+			float dealPrice = (float) dataTable.getValueAt(index, 5);
+			dataTable.removeRow(index);
+			Status status;
+			if (tradedShares == order.getQuantity())
+				status = Status.FULLY_FILLED;
+			else
+				status = Status.PARTIALLY_FILLED;
+			drawRaw(orderID, order.getStockName(), status, order.getQuantity(),
+					tradedShares, dealPrice, order.getType(), order.getPrice(),
+					new Date());
 		} catch (IllegalArgumentException e) {
 			drawRaw(orderID, order.getStockName(), Status.SEND,
 					order.getQuantity(), 0, (float) 0.0, order.getType(),
@@ -31,7 +42,7 @@ public class TableRepresentation {
 
 	public void drawResponse(TradeResponse response) {
 		String symbol = "unknown";
-		Status status = Status.PARTIALLY_FILLED;
+		Status status = Status.DELAYED;
 		int quantity = response.getQuantity();
 		int tradedShares = response.getQuantity();
 		float dealPrice = response.getPrice();

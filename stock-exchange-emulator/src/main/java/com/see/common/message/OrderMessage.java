@@ -4,7 +4,8 @@ import java.io.Serializable;
 
 import com.see.common.domain.OrderType;
 
-public class OrderMessage implements Serializable {
+public class OrderMessage extends Message implements Serializable {
+	private static final long serialVersionUID = -1095619134321659430L;
 
 	public OrderMessage(String clientName, String stock, float price,
 			int quantity, OrderType tradeOperation) {
@@ -15,13 +16,11 @@ public class OrderMessage implements Serializable {
 		this.tradeOperation = tradeOperation;
 	}
 
-	private static final long serialVersionUID = -1095619134321659430L;
-
-	private String clientName;
-	private String stock;
-	private float price;
-	private int quantity;
-	private OrderType tradeOperation;
+	private final String clientName;
+	private final String stock;
+	private final float price;
+	private final int quantity;
+	private final OrderType tradeOperation;
 	private int localID;
 
 	public String getStockName() {

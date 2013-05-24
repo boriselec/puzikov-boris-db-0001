@@ -31,13 +31,16 @@ public class StockExchange {
 		SessionManager sessionManager = new SessionManager();
 		DelayedResponsesContainer delayedResponsesContainer = new DelayedResponsesContainer();
 		ResponseManager responseManager = new ResponseManager();
+		LoginService loginService = new LoginService();
 
-		listenSocket(sessionManager, delayedResponsesContainer, responseManager);
+		listenSocket(sessionManager, delayedResponsesContainer,
+				responseManager, loginService);
 	}
 
 	private void listenSocket(SessionManager sessionManager,
 			DelayedResponsesContainer delayedResponsesContainer,
-			ResponseManager responseManager) throws IOException {
+			ResponseManager responseManager, LoginService loginService)
+			throws IOException {
 		while (true) {
 			Socket newClientSocket = serverSocket.accept();
 
@@ -48,14 +51,14 @@ public class StockExchange {
 			tradingMessager.connect();
 
 			try {
+				String loginString = loginService.getLogin(tradingMessager);
 				ClientSession client = sessionManager.getClientSession(
-						serviceContainer, tradingMessager, responseManager,
-						delayedResponsesContainer);
+						loginString, serviceContainer, tradingMessager,
+						responseManager, delayedResponsesContainer);
 				sessionManager.startThread(client);
 			} catch (NoLoginException e) {
 				tradingMessager.sendError(e.getMessage());
 				log.info("Unable to get login. Reconnect. " + e.getMessage());
-				continue;
 			}
 		}
 	}

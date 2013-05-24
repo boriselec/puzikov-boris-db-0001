@@ -285,6 +285,9 @@ public class ClientGUI extends JFrame {
 			JOptionPane.showMessageDialog(contentPane,
 					"Bad arguments: " + e.getMessage());
 			log.info("Failed to send order");
+		} catch (NoLoginException e) {
+			JOptionPane.showMessageDialog(contentPane,
+					"Not connected: " + e.getMessage());
 		}
 
 	}
