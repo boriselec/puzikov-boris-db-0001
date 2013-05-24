@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -25,7 +27,7 @@ public class DefaultClient implements Client {
 	private final static int DEFAULT_PORT = 2006;
 	private List<TradeListener> observers;
 	private HashMap<Integer, IDPair> iDMap = new HashMap<>();
-	private Thread listenThread;
+	private ExecutorService listenThread;
 	private TradingMessager messager;
 	private AtomicInteger orderCount = new AtomicInteger();
 
@@ -73,8 +75,8 @@ public class DefaultClient implements Client {
 
 			readDelayedResponses();
 
-			listenThread = new Thread(listenThreadRunnable);
-			listenThread.start();
+			listenThread = Executors.newSingleThreadExecutor();
+			listenThread.submit(listenThreadRunnable);
 
 		} catch (IOException | ClassNotFoundException | NoLoginException e) {
 			throw new NoLoginException(e.getMessage());
@@ -98,7 +100,8 @@ public class DefaultClient implements Client {
 			notifyObservers(response);
 	}
 
-	public UUID sendOrder(OrderMessage order) throws BadOrderException {
+	public UUID sendOrder(OrderMessage order) throws BadOrderException,
+			NoLoginException {
 		try {
 			int local = getLocalOrderID();
 			order.setLocalOrderID(local);
@@ -143,6 +146,7 @@ public class DefaultClient implements Client {
 	public void disconnect() {
 		try {
 			messager.disconnect();
+			listenThread.shutdownNow();
 		} catch (IOException e) {
 		}
 	}

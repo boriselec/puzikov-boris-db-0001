@@ -3,7 +3,7 @@ package com.see.common.message;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class IDPair implements Serializable {
+public class IDPair extends Message implements Serializable {
 
 	private static final long serialVersionUID = 8289098375042855268L;
 
@@ -19,9 +19,9 @@ public class IDPair implements Serializable {
 		this.isPlaced = false;
 	}
 
-	private Integer localId;
-	private UUID globalUuid;
-	private boolean isPlaced;
+	private final Integer localId;
+	private final UUID globalUuid;
+	private final boolean isPlaced;
 
 	public boolean isPlaced() {
 		return isPlaced;

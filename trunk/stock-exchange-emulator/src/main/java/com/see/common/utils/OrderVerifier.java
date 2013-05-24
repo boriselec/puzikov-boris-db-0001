@@ -41,23 +41,25 @@ public class OrderVerifier {
 		return result;
 	}
 
-	public void verifyTradeOrder(Order message, String[] tickerSymbols)
+	public void verifyTradeOrder(Order order, String[] tickerSymbols)
 			throws BadOrderException {
 		boolean isFound = false;
 		for (String ticker : tickerSymbols)
-			if (ticker.equals(message.getStock())) {
+			if (ticker.equals(order.getStock())) {
 				isFound = true;
 				break;
 			}
 		if (isFound == false)
-			throw new BadOrderException(String.format(
-					"Stock exchange don't trade %s ticker", message.getStock()));
+			throw new BadOrderException(order.getOrderID(), String.format(
+					"Stock exchange don't trade %s ticker", order.getStock()));
 
-		if (message.getQuantity() <= 0)
-			throw new BadOrderException("Order shares count should be positive");
+		if (order.getQuantity() <= 0)
+			throw new BadOrderException(order.getOrderID(),
+					"Order shares count should be positive");
 
-		if (message.getPrice() <= 0
-				&& message.getPrice() != Float.NEGATIVE_INFINITY)
-			throw new BadOrderException("Order price should be positive");
+		if (order.getPrice() <= 0
+				&& order.getPrice() != Float.NEGATIVE_INFINITY)
+			throw new BadOrderException(order.getOrderID(),
+					"Order price should be positive");
 	}
 }

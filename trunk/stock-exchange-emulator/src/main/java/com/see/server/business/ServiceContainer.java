@@ -15,16 +15,17 @@ public class ServiceContainer implements TradingService {
 		this.tickerSymbols = tickers;
 
 		for (String ticker : tickers) {
-			orderBookContainer.put(ticker, new OrderBookService());
+			orderBookContainer.put(ticker, new OrderBookService(
+					new OrderBookImpl()));
 		}
 	}
 
 	@Override
-	public void sendOrder(Order order) {
+	public void placeOrder(Order order) {
 		if (orderBookContainer.containsKey(order.getStock()))
-			this.orderBookContainer.get(order.getStock()).sendOrder(order);
+			this.orderBookContainer.get(order.getStock()).placeOrder(order);
 		else
-			return;
+			throw new IllegalArgumentException();
 	}
 
 	@Override
