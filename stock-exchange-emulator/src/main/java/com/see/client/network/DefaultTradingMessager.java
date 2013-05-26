@@ -2,10 +2,11 @@ package com.see.client.network;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.see.common.exception.NoLoginException;
-import com.see.common.message.IDPair;
-import com.see.common.message.OrderMessage;
+import com.see.common.message.CancelRequest;
+import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
 
@@ -38,14 +39,14 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void sendOrder(OrderMessage order) throws IOException {
+	public void sendOrder(OrderRequest order) throws IOException {
 		messager.write(order);
 	}
 
 	@Override
-	public LinkedList<TradeResponse> readDelayedResponses()
-			throws NoLoginException, IOException {
-		LinkedList<TradeResponse> result = new LinkedList<>();
+	public List<TradeResponse> readDelayedResponses() throws NoLoginException,
+			IOException {
+		List<TradeResponse> result = new LinkedList<>();
 		while (true) {
 			Object messageObject = messager.read();
 			if (messageObject instanceof String)
@@ -62,8 +63,8 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void sendCancel(IDPair cancelingOrderID) throws IOException {
-		messager.write(cancelingOrderID);
+	public void sendCancel(CancelRequest cancelRequest) throws IOException {
+		messager.write(cancelRequest);
 	}
 
 	@Override

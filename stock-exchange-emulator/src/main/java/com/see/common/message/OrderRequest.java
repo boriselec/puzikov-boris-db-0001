@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 import com.see.common.domain.OrderType;
 
-public class OrderMessage extends Message implements Serializable {
+public class OrderRequest implements Serializable {
 	private static final long serialVersionUID = -1095619134321659430L;
 
-	public OrderMessage(String clientName, String stock, float price,
+	public OrderRequest(String clientName, String stock, float price,
 			int quantity, OrderType tradeOperation) {
 		this.clientName = clientName;
 		this.stock = stock;

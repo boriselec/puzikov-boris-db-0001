@@ -2,7 +2,9 @@ package com.see.common.pricing;
 
 import com.see.common.domain.Order;
 
-public class LastPriceMatcher implements PriceMatcher {
+public class LastPriceMatcher implements MatchingEngine {
+
+	private PriceComparator priceComparator = new PriceComparator();
 
 	@Override
 	public float getPrice(Order o1, Order o2, float lastDealPrice) {
@@ -21,6 +23,11 @@ public class LastPriceMatcher implements PriceMatcher {
 
 	private boolean isMarket(Order order) {
 		return (order.getPrice() == Float.POSITIVE_INFINITY || order.getPrice() == Float.NEGATIVE_INFINITY);
+	}
+
+	@Override
+	public boolean isMatch(Order bid, Order offer) {
+		return priceComparator.match(bid.getPrice(), offer.getPrice());
 	}
 
 }

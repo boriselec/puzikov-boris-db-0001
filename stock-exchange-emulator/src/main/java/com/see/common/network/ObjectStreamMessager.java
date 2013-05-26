@@ -23,7 +23,6 @@ public class ObjectStreamMessager implements NetworkMessager {
 
 	@Override
 	public void write(Object message) throws IOException {
-		System.out.println("write> " + message);
 		out.writeObject(message);
 	}
 
@@ -31,7 +30,6 @@ public class ObjectStreamMessager implements NetworkMessager {
 	public Object read() throws IOException {
 		try {
 			Object message = in.readObject();
-			System.out.println("read> " + message);
 			return message;
 		} catch (ClassNotFoundException e) {
 			throw new IOException(e.getMessage());

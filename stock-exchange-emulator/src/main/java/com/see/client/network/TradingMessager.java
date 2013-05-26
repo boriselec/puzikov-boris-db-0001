@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import com.see.common.exception.NoLoginException;
-import com.see.common.message.IDPair;
-import com.see.common.message.OrderMessage;
+import com.see.common.message.CancelRequest;
+import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 
 public interface TradingMessager {
@@ -18,11 +18,11 @@ public interface TradingMessager {
 
 	public void sendLogin(String loginName) throws IOException;
 
-	public void sendOrder(OrderMessage order) throws IOException;
+	public void sendOrder(OrderRequest order) throws IOException;
 
 	public List<TradeResponse> readDelayedResponses() throws NoLoginException,
 			IOException;
 
-	public void sendCancel(IDPair idPair) throws IOException;
+	public void sendCancel(CancelRequest cancelRequest) throws IOException;
 
 }

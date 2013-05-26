@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.see.common.domain.OrderType;
 import com.see.common.domain.Status;
-import com.see.common.message.OrderMessage;
+import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 
 public class TableRepresentation {
@@ -19,7 +19,7 @@ public class TableRepresentation {
 	private SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm:ss");
 	private DefaultTableModel dataTable;
 
-	public void drawTradeOrder(UUID orderID, OrderMessage order) {
+	public void drawTradeOrder(UUID orderID, OrderRequest order) {
 		try {
 			int index = getOrderIndex(orderID);
 			int tradedShares = (int) dataTable.getValueAt(index, 4);
@@ -53,7 +53,13 @@ public class TableRepresentation {
 			int index = getOrderIndex(response.getOrderID());
 			symbol = (String) dataTable.getValueAt(index, 1);
 			quantity = (int) dataTable.getValueAt(index, 3);
-			price = (float) dataTable.getValueAt(index, 7);
+			String priceString = (String) dataTable.getValueAt(index, 7);
+			tradeOperation = (OrderType) dataTable.getValueAt(index, 6);
+			if (priceString.equals("MARKET"))
+				price = (tradeOperation == OrderType.BUY) ? Float.POSITIVE_INFINITY
+						: Float.NEGATIVE_INFINITY;
+			else
+				price = Float.parseFloat(priceString);
 			tradedShares = (int) dataTable.getValueAt(index, 4);
 			dealPrice = (float) dataTable.getValueAt(index, 5);
 			if (dealPrice == Float.NaN)
@@ -66,7 +72,6 @@ public class TableRepresentation {
 				status = Status.FULLY_FILLED;
 			else
 				status = Status.PARTIALLY_FILLED;
-			tradeOperation = (OrderType) dataTable.getValueAt(index, 6);
 			dataTable.removeRow(index);
 		} catch (IllegalArgumentException e) {
 		}
@@ -88,15 +93,15 @@ public class TableRepresentation {
 			int tradedShares, float price, OrderType type, float limit,
 			Date date) {
 
-		// String limitString;
-		// if (limit == Float.POSITIVE_INFINITY
-		// || limit == Float.NEGATIVE_INFINITY)
-		// limitString = "MARKET";
-		// else
-		// limitString = ((Float) limit).toString();
+		String limitString;
+		if (limit == Float.POSITIVE_INFINITY
+				|| limit == Float.NEGATIVE_INFINITY)
+			limitString = "MARKET";
+		else
+			limitString = ((Float) limit).toString();
 		String dateString = (date == null) ? "" : dateFormater.format(date);
 		dataTable.addRow(new Object[] { uuid, stock, status, quantity,
-				tradedShares, price, type, limit, dateString });
+				tradedShares, price, type, limitString, dateString });
 	}
 
 	private int getOrderIndex(UUID uuid) {

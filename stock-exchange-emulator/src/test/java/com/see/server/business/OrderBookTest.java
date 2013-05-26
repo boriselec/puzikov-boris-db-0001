@@ -7,25 +7,30 @@ import java.util.UUID;
 
 import junit.framework.TestCase;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import com.see.common.domain.Trade;
-import com.see.common.domain.OrderType;
 import com.see.common.domain.Order;
+import com.see.common.domain.OrderType;
+import com.see.common.domain.Trade;
 import com.see.common.exception.CancelOrderException;
 
 public class OrderBookTest extends TestCase {
 
-	private OrderBook orderBook = new OrderBookImpl();
+	private OrderBook orderBook = new OrderBookImpl(0);
 	private List<Trade> responses = new LinkedList<>();
 
-	private Order orderGetTest(OrderType type, int sharesCount,
-			float price, Date date) {
+	private Order orderGetTest(OrderType type, int sharesCount, float price,
+			Date date) {
 
-		Order resultOrder = new Order(UUID.randomUUID(), "TEST", "TEST",
-				type, price, sharesCount, new Date());
+		Order resultOrder = new Order(UUID.randomUUID(), "TEST", "TEST", type,
+				price, sharesCount, new Date());
 		return resultOrder;
 	}
+
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
@@ -134,8 +139,8 @@ public class OrderBookTest extends TestCase {
 	@Test
 	public void testShouldFillAllOrdersWhenAddedOneToManyMatchingOffer() {
 		for (int i = 0; i < 5; i++) {
-			orderBook.placeOrder(orderGetTest(OrderType.BUY, 1,
-					(float) 1.0, new Date()));
+			orderBook.placeOrder(orderGetTest(OrderType.BUY, 1, (float) 1.0,
+					new Date()));
 			responses = orderBook.fillOrders();
 
 			assertEquals(responses.size(), 0);
@@ -151,33 +156,30 @@ public class OrderBookTest extends TestCase {
 	}
 
 	@Test
-	public void testShouldCancelWhenReceiveCancelOrder() {
-		Order order = orderGetTest(OrderType.BUY, 1, (float) 1.0,
-				new Date());
+	public void testShouldCancelWhenReceiveCancelOrder()
+			throws CancelOrderException {
+		Order order = orderGetTest(OrderType.BUY, 1, (float) 1.0, new Date());
 		orderBook.placeOrder(order);
 		responses = orderBook.fillOrders();
 
+		orderBook.cancelOrder(order.getOrderID());
+
+		// should throw
 		try {
 			orderBook.cancelOrder(order.getOrderID());
-		} catch (CancelOrderException e) {
 			fail();
+		} catch (CancelOrderException e) {
 		}
 
 	}
 
 	@Test
-	public void testShouldReturnErrorResponseWhenReceiveBadCancelOrder() {
-
-		Order order = orderGetTest(OrderType.BUY, 1, (float) 1.0,
-				new Date());
-		orderBook.placeOrder(order);
-		responses = orderBook.fillOrders();
+	public void testShouldThrowExceptionWhenCanclingBadNotExistingOrder() {
 
 		try {
 			orderBook.cancelOrder(UUID.randomUUID());
 			fail();
 		} catch (CancelOrderException e) {
-			assertTrue(true);
 		}
 
 	}

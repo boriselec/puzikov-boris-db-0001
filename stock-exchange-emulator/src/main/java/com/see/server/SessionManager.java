@@ -1,6 +1,7 @@
 package com.see.server;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -11,7 +12,7 @@ import com.see.server.network.TradingMessager;
 
 public class SessionManager {
 
-	private HashSet<String> clientMap = new HashSet<>();
+	private Set<String> clientMap = new HashSet<>();
 	private ExecutorService sessions = Executors.newCachedThreadPool();
 
 	public ClientSession getClientSession(String clientLogin,

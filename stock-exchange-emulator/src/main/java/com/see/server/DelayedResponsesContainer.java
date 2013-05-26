@@ -1,12 +1,13 @@
 package com.see.server;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.see.common.message.TradeResponse;
 
 public class DelayedResponsesContainer {
-	private ConcurrentHashMap<String, LinkedList<TradeResponse>> delayedResponses = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, List<TradeResponse>> delayedResponses = new ConcurrentHashMap<>();
 
 	public void addDelayedResponse(String client, TradeResponse response) {
 		if (delayedResponses.containsKey(client) == false)
@@ -14,10 +15,10 @@ public class DelayedResponsesContainer {
 		delayedResponses.get(client).add(response);
 	}
 
-	public LinkedList<TradeResponse> getDelayedResponses(String client) {
+	public List<TradeResponse> getDelayedResponses(String client) {
 		if (delayedResponses.containsKey(client) == false)
 			return null;
-		LinkedList<TradeResponse> result = delayedResponses.remove(client);
+		List<TradeResponse> result = delayedResponses.remove(client);
 		delayedResponses.remove(client);
 		return result;
 	}
