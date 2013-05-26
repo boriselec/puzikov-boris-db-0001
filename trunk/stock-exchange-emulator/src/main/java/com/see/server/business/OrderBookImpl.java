@@ -9,29 +9,30 @@ import java.util.UUID;
 
 import com.see.common.comparator.InverseOrderComparator;
 import com.see.common.comparator.OrderComparator;
-import com.see.common.domain.Trade;
-import com.see.common.domain.OrderType;
 import com.see.common.domain.Order;
+import com.see.common.domain.OrderType;
+import com.see.common.domain.Trade;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.pricing.LastPriceMatcher;
-import com.see.common.pricing.PriceComparator;
-import com.see.common.pricing.PriceMatcher;
+import com.see.common.pricing.MatchingEngine;
 
 public class OrderBookImpl implements OrderBook {
-	private static float DEFAULT_PRICE = (float) 100.0;
 
-	public OrderBookImpl() {
+	public OrderBookImpl(float lastDealPrice) {
+		this.lastDealPrice = lastDealPrice;
+
 		bidsOrderBook = new TreeSet<>(new InverseOrderComparator());
 		offersOrderBook = new TreeSet<>(new OrderComparator());
 
 		this.mainMatcher = new LastPriceMatcher();
 	}
 
-	private TreeSet<Order> bidsOrderBook;
-	private TreeSet<Order> offersOrderBook;
+	private Set<Order> bidsOrderBook;
+	private Set<Order> offersOrderBook;
 
-	private PriceMatcher mainMatcher;
-	private float lastDealPrice = DEFAULT_PRICE;
+	private MatchingEngine mainMatcher;
+
+	private float lastDealPrice;
 
 	@Override
 	public void placeOrder(Order order) {
@@ -54,35 +55,30 @@ public class OrderBookImpl implements OrderBook {
 
 		for (Order order : bidsOrderBook) {
 			if (order.getOrderID().equals(orderID)) {
-				bidsOrderBook.remove(order);
+				removeOrder(order);
 				return;
 			}
 		}
 		for (Order order : offersOrderBook) {
 			if (order.getOrderID().equals(orderID)) {
-				offersOrderBook.remove(order);
+				removeOrder(order);
 				return;
 			}
 		}
 
 		// not found
-		throw new CancelOrderException("No suck order");
+		throw new CancelOrderException(orderID, "No such order");
 	}
 
-	private void removeFirst(OrderType type) {
-		Set<Order> book;
-		if (type == OrderType.BUY)
-			book = bidsOrderBook;
+	private void removeOrder(Order order) {
+		if (order.getType() == OrderType.BUY)
+			bidsOrderBook.remove(order);
 		else
-			book = offersOrderBook;
-		Iterator<Order> iterator = book.iterator();
-		if (iterator.hasNext()) {
-			iterator.next();
-			iterator.remove();
-		}
+			offersOrderBook.remove(order);
+
 	}
 
-	private Order getFirst(Set<Order> orderBook) {
+	private Order getBest(Set<Order> orderBook) {
 		Iterator<Order> iterator = orderBook.iterator();
 		return iterator.next();
 	}
@@ -95,14 +91,13 @@ public class OrderBookImpl implements OrderBook {
 			if (bidsOrderBook.size() == 0 || offersOrderBook.size() == 0)
 				break;
 
-			Order bid = getFirst(bidsOrderBook);
-			float bidPrice = bid.getPrice();
+			Order bid = getBest(bidsOrderBook);
 
-			Order offer = getFirst(offersOrderBook);
-			float offerPrice = offer.getPrice();
+			Order offer = getBest(offersOrderBook);
 
-			if (PriceComparator.match(offerPrice, bidPrice)) {
-				float dealPrice = mainMatcher.getPrice(offer, bid, lastDealPrice);
+			if (mainMatcher.isMatch(bid, offer)) {
+				float dealPrice = mainMatcher.getPrice(offer, bid,
+						lastDealPrice);
 				lastDealPrice = dealPrice;
 
 				Trade dealResponse = fill(bid, offer, dealPrice);
@@ -134,12 +129,12 @@ public class OrderBookImpl implements OrderBook {
 	}
 
 	private void partiallyFill(Order order, int sharesCount) {
-		removeFirst(order.getType());
+		removeOrder(order);
 		placeOrder(order.getPartiallyFilledOrder(sharesCount));
 	}
 
 	private void fullyFill(Order order) {
-		removeFirst(order.getType());
+		removeOrder(order);
 	}
 
 }

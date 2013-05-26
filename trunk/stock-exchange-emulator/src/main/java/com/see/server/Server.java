@@ -13,14 +13,14 @@ import com.see.server.business.ServiceContainer;
 import com.see.server.network.DefaultTradingMessager;
 import com.see.server.network.TradingMessager;
 
-public class StockExchange {
-	private static Logger log = Logger.getLogger(StockExchange.class.getName());
+public class Server {
+	private static Logger log = Logger.getLogger(Server.class.getName());
 	private ServerSocket serverSocket;
 	private final static int DEFAULT_PORT = 2006;
 	private static final int DEFAULT_QUEUE_LENGTH = 100;
 	private ServiceContainer serviceContainer;
 
-	public StockExchange(ServiceContainer container) {
+	public Server(ServiceContainer container) {
 		this.serviceContainer = container;
 	}
 
@@ -65,8 +65,11 @@ public class StockExchange {
 
 	public static void main(String[] args) throws IOException {
 		final String[] tickerSymbols = { "AAPL", "MCD", "IBM", "MSFT", "PG" };
-		ServiceContainer container = new ServiceContainer(tickerSymbols);
-		StockExchange stockExchange = new StockExchange(container);
+		final float[] lastSessionPrices = { (float) 100.0, (float) 100.0,
+				(float) 100.0, (float) 100.0, (float) 100.0 };
+		ServiceContainer container = new ServiceContainer(tickerSymbols,
+				lastSessionPrices);
+		Server stockExchange = new Server(container);
 		stockExchange.runServer();
 	}
 }

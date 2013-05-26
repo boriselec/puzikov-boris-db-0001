@@ -7,7 +7,7 @@ import com.see.common.domain.Order;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.DisconnectException;
-import com.see.common.message.IDPair;
+import com.see.common.message.CancelRequest;
 import com.see.server.business.ServiceContainer;
 
 public class OrderExecutor {
@@ -26,8 +26,8 @@ public class OrderExecutor {
 				throw new DisconnectException();
 			else
 				throw new BadOrderException();
-		} else if (message instanceof IDPair) {
-			return executeCancel((IDPair) message);
+		} else if (message instanceof CancelRequest) {
+			return executeCancel((CancelRequest) message);
 		} else if (message instanceof Order) {
 			return executeOrder((Order) message);
 		} else
@@ -42,7 +42,7 @@ public class OrderExecutor {
 		return order.getOrderID();
 	}
 
-	private UUID executeCancel(IDPair orderIdPair) throws IOException,
+	private UUID executeCancel(CancelRequest orderIdPair) throws IOException,
 			CancelOrderException {
 		UUID cancelingID = orderIdPair.getGlobalUuid();
 		serviceContainer.cancelOrder(cancelingID);

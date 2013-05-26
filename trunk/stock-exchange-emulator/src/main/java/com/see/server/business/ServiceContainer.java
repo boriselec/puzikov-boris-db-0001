@@ -1,6 +1,7 @@
 package com.see.server.business;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.see.common.domain.Order;
@@ -9,14 +10,18 @@ import com.see.server.TradeListener;
 
 public class ServiceContainer implements TradingService {
 	private String[] tickerSymbols;
-	private HashMap<String, OrderBookService> orderBookContainer = new HashMap<>();
+	private Map<String, OrderBookService> orderBookContainer = new HashMap<>();
 
-	public ServiceContainer(String[] tickers) {
+	public ServiceContainer(String[] tickers, float[] lastSessionPrices) {
+		if (tickers.length != lastSessionPrices.length)
+			throw new IllegalArgumentException(
+					"Tickers count must be equal prices count");
+
 		this.tickerSymbols = tickers;
 
-		for (String ticker : tickers) {
-			orderBookContainer.put(ticker, new OrderBookService(
-					new OrderBookImpl()));
+		for (int i = 0; i < tickers.length; i++) {
+			orderBookContainer.put(tickers[i], new OrderBookService(
+					new OrderBookImpl(lastSessionPrices[i])));
 		}
 	}
 
@@ -52,9 +57,9 @@ public class ServiceContainer implements TradingService {
 				this.orderBookContainer.get(stock).cancelOrder(orderID);
 				return;
 
-			} catch (CancelOrderException e) {
+			} catch (CancelOrderException ignored) {
 			}
-		throw new CancelOrderException("No such order");
+		throw new CancelOrderException(orderID, "No such order");
 	}
 
 }

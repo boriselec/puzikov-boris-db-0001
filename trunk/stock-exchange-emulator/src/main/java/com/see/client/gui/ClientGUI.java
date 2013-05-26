@@ -28,9 +28,8 @@ import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
-import com.see.common.message.OrderMessage;
+import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
-import com.see.common.utils.OrderVerifier;
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame {
@@ -47,7 +46,6 @@ public class ClientGUI extends JFrame {
 
 	};
 
-	private OrderVerifier orderVerifier = new OrderVerifier();
 	private DefaultClient client;
 
 	private ActionListener loginListener = new ActionListener() {
@@ -269,22 +267,27 @@ public class ClientGUI extends JFrame {
 		String stockName = symbolTextField.getText();
 		OrderType type = (buyRadioButton.getSelectedObjects() != null) ? OrderType.BUY
 				: OrderType.SELL;
-		String limitOrMarket = (limitRadioButton.getSelectedObjects() != null) ? "limit"
-				: "market";
-		String price = priceTextField.getText();
-		String sharesCount = quantityTextField.getText();
+		boolean isLimit = (limitRadioButton.getSelectedObjects() != null);
+		String priceString = priceTextField.getText();
+		String quantityString = quantityTextField.getText();
 		try {
-			OrderMessage order = orderVerifier.getTradeOrder(login, stockName,
-					type, limitOrMarket, price, sharesCount);
+			float price;
+			if (isLimit)
+				price = Float.parseFloat(priceString);
+			else
+				price = (type == OrderType.BUY) ? Float.POSITIVE_INFINITY
+						: Float.NEGATIVE_INFINITY;
+			int quantity = Integer.parseInt(quantityString);
+			OrderRequest order = new OrderRequest(login, stockName, price,
+					quantity, type);
 			clearTextFields();
 			UUID orderId = client.sendOrder(order);
 			log.info(String.format("Sended new order: orderID=%s",
 					orderId.toString()));
 			table.drawTradeOrder(orderId, order);
-		} catch (BadOrderException e) {
+		} catch (NumberFormatException | BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Bad arguments: " + e.getMessage());
-			log.info("Failed to send order");
 		} catch (NoLoginException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Not connected: " + e.getMessage());

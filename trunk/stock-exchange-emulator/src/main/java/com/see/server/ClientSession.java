@@ -2,8 +2,8 @@ package com.see.server;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -31,10 +31,10 @@ public class ClientSession implements Runnable {
 
 	private boolean isConnected = true;
 
-	private HashSet<String> clientMap;
+	private Set<String> clientMap;
 
 	public ClientSession(String clientName, ServiceContainer serviceContainer,
-			HashSet<String> clientMap, TradingMessager tradingMessager,
+			Set<String> clientMap, TradingMessager tradingMessager,
 			ResponseManager responseManager,
 			DelayedResponsesContainer delayedResponsesContainer) {
 		this.clientName = clientName;
@@ -65,7 +65,7 @@ public class ClientSession implements Runnable {
 	}
 
 	private void sendDelayedResponses() throws IOException {
-		LinkedList<TradeResponse> delayedResponses = delayedResponsesContainer
+		List<TradeResponse> delayedResponses = delayedResponsesContainer
 				.getDelayedResponses(clientName);
 
 		if (delayedResponses != null)
@@ -85,7 +85,7 @@ public class ClientSession implements Runnable {
 			} catch (BadOrderException e) {
 				messager.sendBadOrderID(e.getOrderID());
 			} catch (CancelOrderException e) {
-				messager.sendBadOrderID(null);
+				messager.sendBadOrderID(e.getOrderID());
 			} catch (SocketException | DisconnectException closeException) {
 				disconnectClient();
 				return;

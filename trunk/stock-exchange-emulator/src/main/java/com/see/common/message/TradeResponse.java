@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-public class TradeResponse extends Message implements Serializable {
+public class TradeResponse implements Serializable {
 	private static final long serialVersionUID = 8728026755141535281L;
 
 	final private UUID orderID;

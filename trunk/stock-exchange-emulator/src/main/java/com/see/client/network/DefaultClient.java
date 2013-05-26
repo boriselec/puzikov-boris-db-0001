@@ -4,32 +4,38 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
-import com.see.common.message.IDPair;
-import com.see.common.message.OrderMessage;
+import com.see.common.message.CancelRequest;
+import com.see.common.message.OrderRequest;
+import com.see.common.message.PlasedResponse;
 import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
 import com.see.common.network.ObjectStreamMessager;
+import com.see.common.utils.OrderVerifier;
 
 public class DefaultClient implements Client {
 	private static Logger log = Logger.getLogger(DefaultClient.class.getName());
 	private final static int DEFAULT_PORT = 2006;
 	private List<TradeListener> observers;
-	private HashMap<Integer, IDPair> iDMap = new HashMap<>();
+	private BlockingQueue<PlasedResponse> responses = new LinkedBlockingQueue<>(
+			1);
 	private ExecutorService listenThread;
 	private TradingMessager messager;
 	private AtomicInteger orderCount = new AtomicInteger();
+
+	private OrderVerifier orderVerifier = new OrderVerifier();
 
 	private int getLocalOrderID() {
 		return orderCount.incrementAndGet();
@@ -43,14 +49,10 @@ public class DefaultClient implements Client {
 					Object response = messager.readResponse();
 					if (response instanceof TradeResponse) {
 						notifyObservers((TradeResponse) response);
-					} else if (response instanceof IDPair) {
-						synchronized (iDMap) {
-
-							iDMap.put(((IDPair) response).getLocalID(),
-									(IDPair) response);
-							iDMap.notifyAll();
-						}
+					} else if (response instanceof PlasedResponse) {
+						responses.add((PlasedResponse) response);
 					} else {
+						log.warning("Bad server response");
 					}
 				} catch (IOException breakException) {
 					breakException.printStackTrace();
@@ -100,37 +102,27 @@ public class DefaultClient implements Client {
 			notifyObservers(response);
 	}
 
-	public UUID sendOrder(OrderMessage order) throws BadOrderException,
+	public UUID sendOrder(OrderRequest order) throws BadOrderException,
 			NoLoginException {
 		try {
+			orderVerifier.verifyTradeOrder(order);
+
 			int local = getLocalOrderID();
 			order.setLocalOrderID(local);
 			messager.sendOrder(order);
 
-			IDPair result = readID(local);
+			PlasedResponse result = responses.take();
+
 			if (result.isPlaced())
 				return result.getGlobalUuid();
 			else
 				throw new BadOrderException();
 
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			log.warning("Bad server response");
 			throw new BadOrderException("Bad server response");
 		}
-	}
 
-	private IDPair readID(int local) {
-		IDPair result = null;
-		synchronized (iDMap) {
-			while (result == null) {
-				try {
-					iDMap.wait();
-				} catch (InterruptedException ignored) {
-				}
-				result = iDMap.remove(local);
-			}
-			return result;
-		}
 	}
 
 	public void addObserver(TradeListener observer) {
@@ -154,15 +146,14 @@ public class DefaultClient implements Client {
 	public void cancelOrder(UUID orderID) throws CancelOrderException {
 		try {
 			int local = getLocalOrderID();
-			messager.sendCancel(new IDPair(local, orderID));
+			messager.sendCancel(new CancelRequest(local, orderID));
 
-			UUID canceledID = readID(local).getGlobalUuid();
-			System.out.println(canceledID);
-			if (canceledID.equals(orderID) == false)
-				throw new CancelOrderException("Unable to cancel");
-		} catch (IOException e) {
+			PlasedResponse response = responses.take();
+			if (response.isPlaced() == false)
+				throw new CancelOrderException(orderID, "Unable to cancel");
+		} catch (IOException | InterruptedException e) {
 			log.warning("Bad server response");
-			throw new CancelOrderException("Bad server response");
+			throw new CancelOrderException(orderID, "Bad server response");
 		}
 	}
 }
