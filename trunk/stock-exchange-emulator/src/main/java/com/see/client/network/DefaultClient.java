@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.message.CancelRequest;
 import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
@@ -57,19 +57,18 @@ public class DefaultClient implements Client {
 						log.warning("Bad server response");
 					}
 				} catch (IOException breakException) {
-					breakException.printStackTrace();
-					disconnect(new DisconnectRequest(false));
+					disconnect();
 					break;
 				}
 			}
 		}
 	};
 
-	public void login(String loginName) throws NoLoginException {
+	public void login(String loginName) throws LoginException {
 		if (isConnected)
-			throw new NoLoginException("Already connected");
+			throw new LoginException("Already connected");
 		if ("".equals(loginName))
-			throw new NoLoginException("Empty login name");
+			throw new LoginException("Empty login name");
 		try {
 			createConnection();
 
@@ -81,8 +80,8 @@ public class DefaultClient implements Client {
 			listenThread.submit(listenThreadRunnable);
 			isConnected = true;
 
-		} catch (IOException | NoLoginException e) {
-			throw new NoLoginException(e.getMessage());
+		} catch (IOException | LoginException e) {
+			throw new LoginException(e.getMessage());
 		}
 	}
 
@@ -93,7 +92,7 @@ public class DefaultClient implements Client {
 		messager = new DefaultTradingMessager(networkMessager);
 	}
 
-	private void readDelayedResponses() throws IOException, NoLoginException {
+	private void readDelayedResponses() throws IOException, LoginException {
 		LinkedList<TradeResponse> delayedResponses = new LinkedList<>();
 		delayedResponses = (LinkedList<TradeResponse>) messager
 				.readDelayedResponses();
@@ -103,9 +102,9 @@ public class DefaultClient implements Client {
 	}
 
 	public UUID sendOrder(OrderRequest order) throws BadOrderException,
-			NoLoginException {
+			LoginException {
 		if (!isConnected)
-			throw new NoLoginException("Not connected");
+			throw new LoginException("Not connected");
 		try {
 			orderVerifier.verifyTradeOrder(order);
 
@@ -118,7 +117,7 @@ public class DefaultClient implements Client {
 			if (result.isPlaced())
 				return result.getGlobalUuid();
 			else
-				throw new BadOrderException();
+				throw new BadOrderException("Unable to place order");
 
 		} catch (IOException | InterruptedException e) {
 			log.warning("Bad server response");
@@ -137,13 +136,19 @@ public class DefaultClient implements Client {
 		}
 	}
 
-	public void disconnect(DisconnectRequest request) {
+	public void sendDisconnect(DisconnectRequest request) {
 		try {
-			messager.disconnect(request);
-			listenThread.shutdownNow();
-			isConnected = false;
+			messager.sendDisconnect(request);
 		} catch (IOException e) {
+			log.warning("Unable to send disconnect");
+		} finally {
+			disconnect();
 		}
+	}
+
+	private void disconnect() {
+		listenThread.shutdownNow();
+		isConnected = false;
 	}
 
 	public void cancelOrder(UUID orderID) throws CancelOrderException {

@@ -4,20 +4,20 @@ import java.util.UUID;
 
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 
 public interface Client {
-	public void login(String loginName) throws NoLoginException;
+	public void login(String loginName) throws LoginException;
 
 	public UUID sendOrder(OrderRequest order) throws BadOrderException,
-			NoLoginException;
+			LoginException;
 
 	public void cancelOrder(UUID orderID) throws CancelOrderException;
 
 	public void addObserver(TradeListener listener);
 
-	public void disconnect(DisconnectRequest request);
+	public void sendDisconnect(DisconnectRequest request);
 
 }

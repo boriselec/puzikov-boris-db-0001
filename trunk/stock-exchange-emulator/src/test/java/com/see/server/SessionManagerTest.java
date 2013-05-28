@@ -4,7 +4,7 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.utils.ResponseManager;
 import com.see.server.business.ServiceContainer;
 import com.see.server.network.TradingMessager;
@@ -17,9 +17,9 @@ public class SessionManagerTest {
 	ResponseManager responseManager = mock(ResponseManager.class);
 	DelayedResponsesContainer delayedResponsesContainer = mock(DelayedResponsesContainer.class);
 
-	@Test(expected = NoLoginException.class)
+	@Test(expected = LoginException.class)
 	public void testShouldThrowExceptionWhenSessionExists()
-			throws NoLoginException {
+			throws LoginException {
 
 		ClientSession clientSession = sessionManager.getClientSession("test",
 				serviceContainer, tradingMessager, responseManager,
@@ -32,7 +32,7 @@ public class SessionManagerTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testShouldThrowExceptionStartedAlreadyRunnedSession()
-			throws NoLoginException {
+			throws LoginException {
 
 		ClientSession clientSession = sessionManager.getClientSession("test",
 				serviceContainer, tradingMessager, responseManager,

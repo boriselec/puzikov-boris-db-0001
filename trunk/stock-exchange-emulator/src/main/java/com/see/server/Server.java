@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.network.NetworkMessager;
 import com.see.common.network.ObjectStreamMessager;
 import com.see.common.utils.ResponseManager;
@@ -56,7 +56,7 @@ public class Server {
 						loginString, serviceContainer, tradingMessager,
 						responseManager, delayedResponsesContainer);
 				sessionManager.startThread(client);
-			} catch (NoLoginException e) {
+			} catch (LoginException e) {
 				tradingMessager.sendError(e.getMessage());
 				log.info("Unable to get login. Reconnect. " + e.getMessage());
 			}
