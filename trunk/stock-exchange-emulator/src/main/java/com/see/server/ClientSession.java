@@ -97,7 +97,7 @@ public class ClientSession implements Runnable {
 
 	private void disconnectClient() {
 		try {
-			serviceContainer.removeObserver(listener);
+			serviceContainer.removeListener(listener);
 			isConnected = false;
 			clientMap.remove(clientName);
 			messager.disconnect();
@@ -133,7 +133,7 @@ public class ClientSession implements Runnable {
 				}
 			}
 		};
-		serviceContainer.addObserver(listener);
+		serviceContainer.addListener(listener);
 	}
 
 }
