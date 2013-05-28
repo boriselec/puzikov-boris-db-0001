@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.message.CancelRequest;
 import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
@@ -25,7 +25,7 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void disconnect(DisconnectRequest request) throws IOException {
+	public void sendDisconnect(DisconnectRequest request) throws IOException {
 		messager.write(request);
 	}
 
@@ -40,7 +40,7 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public List<TradeResponse> readDelayedResponses() throws NoLoginException,
+	public List<TradeResponse> readDelayedResponses() throws LoginException,
 			IOException {
 		List<TradeResponse> result = new LinkedList<>();
 		while (true) {
@@ -49,11 +49,11 @@ public class DefaultTradingMessager implements TradingMessager {
 				if ("Ok".equals((String) messageObject))
 					break;
 				else
-					throw new NoLoginException((String) messageObject);
+					throw new LoginException((String) messageObject);
 			else if (messageObject instanceof TradeResponse) {
 				result.add((TradeResponse) messageObject);
 			} else
-				throw new NoLoginException("Wrong server response");
+				throw new LoginException("Wrong server response");
 		}
 		return result;
 	}
@@ -66,6 +66,11 @@ public class DefaultTradingMessager implements TradingMessager {
 	@Override
 	public void connect() throws IOException {
 		this.messager.connect();
+	}
+
+	@Override
+	public void disconnect() throws IOException {
+		messager.disconnect();
 	}
 
 }

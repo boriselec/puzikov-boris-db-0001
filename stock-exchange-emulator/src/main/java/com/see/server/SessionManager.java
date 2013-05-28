@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.utils.ResponseManager;
 import com.see.server.business.ServiceContainer;
 import com.see.server.network.TradingMessager;
@@ -19,9 +19,9 @@ public class SessionManager {
 			ServiceContainer serviceContainer, TradingMessager tradingMessager,
 			ResponseManager responseManager,
 			DelayedResponsesContainer delayedResponsesContainer)
-			throws NoLoginException {
+			throws LoginException {
 		if (clientMap.contains(clientLogin))
-			throw new NoLoginException("Server: Already connected");
+			throw new LoginException("Server: Already connected");
 		else {
 			ClientSession result = new ClientSession(clientLogin,
 					serviceContainer, clientMap, tradingMessager,

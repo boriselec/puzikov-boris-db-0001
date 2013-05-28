@@ -49,8 +49,6 @@ public class OrderBookImpl implements OrderBook {
 		case SELL:
 			offersOrderBook.add(order);
 			break;
-		default:
-			throw new IllegalArgumentException();
 		}
 	}
 

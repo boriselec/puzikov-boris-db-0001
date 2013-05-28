@@ -27,7 +27,7 @@ import com.see.client.network.TradeListener;
 import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
-import com.see.common.exception.NoLoginException;
+import com.see.common.exception.LoginException;
 import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
@@ -291,7 +291,7 @@ public class ClientGUI extends JFrame {
 		} catch (NumberFormatException | BadOrderException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Bad arguments: " + e.getMessage());
-		} catch (NoLoginException e) {
+		} catch (LoginException e) {
 			JOptionPane.showMessageDialog(contentPane,
 					"Not connected: " + e.getMessage());
 		}
@@ -348,7 +348,7 @@ public class ClientGUI extends JFrame {
 			log.info(String.format("Connected to stock exchange. ClientID=%s",
 					login));
 			loginStatusLabel.setText("Connected");
-		} catch (NoLoginException ex) {
+		} catch (LoginException ex) {
 			loginStatusLabel.setText("Disconnected");
 			JOptionPane.showMessageDialog(contentPane,
 					"Login error: " + ex.getMessage());
@@ -358,7 +358,7 @@ public class ClientGUI extends JFrame {
 	private void disconnectClick() {
 		table.clearTable();
 		DisconnectRequest request = new DisconnectRequest(false);
-		client.disconnect(request);
+		client.sendDisconnect(request);
 		isConnected = false;
 		loginStatusLabel.setText("Disconnected");
 	}
