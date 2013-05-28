@@ -1,12 +1,21 @@
 package com.see.common.pricing;
 
 public class PriceComparator {
-	public static final float PRICE_PRECISION = (float) 0.00001;
+
+	public PriceComparator(float precision) {
+		this.precision = precision;
+	}
+
+	private final float precision;
+
+	public float getPrecision() {
+		return precision;
+	}
 
 	public boolean match(float bid, float offer) {
-		if (Math.abs(bid - offer) > PRICE_PRECISION && offer > bid)
+		if (Math.abs(bid - offer) > precision && offer < bid)
 			return true;
-		else if (Math.abs(bid - offer) < PRICE_PRECISION)
+		else if (Math.abs(bid - offer) < precision)
 			return true;
 		else
 			return false;

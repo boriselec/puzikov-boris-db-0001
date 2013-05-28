@@ -7,26 +7,30 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import com.see.common.comparator.InverseOrderComparator;
-import com.see.common.comparator.OrderComparator;
+import com.see.common.comparator.BidComparator;
+import com.see.common.comparator.OfferComparator;
 import com.see.common.domain.Order;
 import com.see.common.domain.OrderType;
 import com.see.common.domain.Trade;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.pricing.LastPriceMatcher;
 import com.see.common.pricing.MatchingEngine;
+import com.see.common.pricing.PriceComparator;
 
 public class OrderBookImpl implements OrderBook {
 
 	public OrderBookImpl(float lastDealPrice) {
 		this.lastDealPrice = lastDealPrice;
 
-		bidsOrderBook = new TreeSet<>(new InverseOrderComparator());
-		offersOrderBook = new TreeSet<>(new OrderComparator());
+		precision = (float) 0.001;
+		bidsOrderBook = new TreeSet<>(new BidComparator(precision));
+		offersOrderBook = new TreeSet<>(new OfferComparator(precision));
 
-		this.mainMatcher = new LastPriceMatcher();
+		PriceComparator priceComparator = new PriceComparator(precision);
+		this.mainMatcher = new LastPriceMatcher(priceComparator);
 	}
 
+	private final float precision;
 	private Set<Order> bidsOrderBook;
 	private Set<Order> offersOrderBook;
 

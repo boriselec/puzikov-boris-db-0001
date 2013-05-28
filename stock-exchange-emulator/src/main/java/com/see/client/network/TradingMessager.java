@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.see.common.exception.NoLoginException;
 import com.see.common.message.CancelRequest;
+import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 
@@ -14,7 +15,7 @@ public interface TradingMessager {
 
 	public void connect() throws IOException;
 
-	public void disconnect() throws IOException;
+	public void disconnect(DisconnectRequest request) throws IOException;
 
 	public void sendLogin(String loginName) throws IOException;
 

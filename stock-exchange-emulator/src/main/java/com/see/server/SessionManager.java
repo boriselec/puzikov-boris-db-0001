@@ -31,6 +31,8 @@ public class SessionManager {
 	}
 
 	public void startThread(ClientSession client) {
+		if (clientMap.contains(client.getName()))
+			throw new IllegalArgumentException("Already runned");
 		sessions.submit(client);
 		clientMap.add(client.getName());
 	}

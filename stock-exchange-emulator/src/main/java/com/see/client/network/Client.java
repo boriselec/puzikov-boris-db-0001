@@ -5,6 +5,7 @@ import java.util.UUID;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 
 public interface Client {
@@ -17,6 +18,6 @@ public interface Client {
 
 	public void addObserver(TradeListener listener);
 
-	public void disconnect();
+	public void disconnect(DisconnectRequest request);
 
 }

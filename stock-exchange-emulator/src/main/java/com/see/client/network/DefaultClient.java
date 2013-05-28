@@ -18,6 +18,7 @@ import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
 import com.see.common.message.CancelRequest;
+import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 import com.see.common.message.PlasedResponse;
 import com.see.common.message.TradeResponse;
@@ -28,7 +29,8 @@ import com.see.common.utils.OrderVerifier;
 public class DefaultClient implements Client {
 	private static Logger log = Logger.getLogger(DefaultClient.class.getName());
 	private final static int DEFAULT_PORT = 2006;
-	private List<TradeListener> observers;
+	private boolean isConnected = false;
+	private List<TradeListener> observers = new ArrayList<TradeListener>();
 	private BlockingQueue<PlasedResponse> responses = new LinkedBlockingQueue<>(
 			1);
 	private ExecutorService listenThread;
@@ -56,18 +58,16 @@ public class DefaultClient implements Client {
 					}
 				} catch (IOException breakException) {
 					breakException.printStackTrace();
-					disconnect();
+					disconnect(new DisconnectRequest(false));
 					break;
 				}
 			}
 		}
 	};
 
-	public DefaultClient() {
-		this.observers = new ArrayList<TradeListener>();
-	}
-
 	public void login(String loginName) throws NoLoginException {
+		if (isConnected)
+			throw new NoLoginException("Already connected");
 		if ("".equals(loginName))
 			throw new NoLoginException("Empty login name");
 		try {
@@ -79,8 +79,9 @@ public class DefaultClient implements Client {
 
 			listenThread = Executors.newSingleThreadExecutor();
 			listenThread.submit(listenThreadRunnable);
+			isConnected = true;
 
-		} catch (IOException | ClassNotFoundException | NoLoginException e) {
+		} catch (IOException | NoLoginException e) {
 			throw new NoLoginException(e.getMessage());
 		}
 	}
@@ -89,11 +90,10 @@ public class DefaultClient implements Client {
 		Socket socket = new Socket("localhost", DEFAULT_PORT);
 		NetworkMessager networkMessager = new ObjectStreamMessager(socket);
 		networkMessager.connect();
-		this.messager = new DefaultTradingMessager(networkMessager);
+		messager = new DefaultTradingMessager(networkMessager);
 	}
 
-	private void readDelayedResponses() throws ClassNotFoundException,
-			IOException, NoLoginException {
+	private void readDelayedResponses() throws IOException, NoLoginException {
 		LinkedList<TradeResponse> delayedResponses = new LinkedList<>();
 		delayedResponses = (LinkedList<TradeResponse>) messager
 				.readDelayedResponses();
@@ -104,6 +104,8 @@ public class DefaultClient implements Client {
 
 	public UUID sendOrder(OrderRequest order) throws BadOrderException,
 			NoLoginException {
+		if (!isConnected)
+			throw new NoLoginException("Not connected");
 		try {
 			orderVerifier.verifyTradeOrder(order);
 
@@ -135,10 +137,11 @@ public class DefaultClient implements Client {
 		}
 	}
 
-	public void disconnect() {
+	public void disconnect(DisconnectRequest request) {
 		try {
-			messager.disconnect();
+			messager.disconnect(request);
 			listenThread.shutdownNow();
+			isConnected = false;
 		} catch (IOException e) {
 		}
 	}

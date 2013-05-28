@@ -28,6 +28,7 @@ import com.see.common.domain.OrderType;
 import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.NoLoginException;
+import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 
@@ -57,6 +58,8 @@ public class ClientGUI extends JFrame {
 	private ActionListener disconnectListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (checkConnection() == false)
+				return;
 			disconnectClick();
 		}
 	};
@@ -353,11 +356,10 @@ public class ClientGUI extends JFrame {
 	}
 
 	private void disconnectClick() {
-		if (checkConnection()) {
-			table.clearTable();
-			client.disconnect();
-			isConnected = false;
-			loginStatusLabel.setText("Disconnected");
-		}
+		table.clearTable();
+		DisconnectRequest request = new DisconnectRequest(false);
+		client.disconnect(request);
+		isConnected = false;
+		loginStatusLabel.setText("Disconnected");
 	}
 }
