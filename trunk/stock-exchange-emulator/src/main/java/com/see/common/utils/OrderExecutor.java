@@ -8,6 +8,7 @@ import com.see.common.exception.BadOrderException;
 import com.see.common.exception.CancelOrderException;
 import com.see.common.exception.DisconnectException;
 import com.see.common.message.CancelRequest;
+import com.see.common.message.DisconnectRequest;
 import com.see.server.business.ServiceContainer;
 
 public class OrderExecutor {
@@ -21,11 +22,8 @@ public class OrderExecutor {
 	public UUID execute(String login, Object message)
 			throws DisconnectException, IOException, BadOrderException,
 			CancelOrderException {
-		if (message instanceof String) {
-			if ("disconnect".equals((String) message))
-				throw new DisconnectException();
-			else
-				throw new BadOrderException();
+		if (message instanceof DisconnectRequest) {
+			throw new DisconnectException();
 		} else if (message instanceof CancelRequest) {
 			return executeCancel((CancelRequest) message);
 		} else if (message instanceof Order) {

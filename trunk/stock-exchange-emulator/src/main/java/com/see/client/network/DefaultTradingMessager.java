@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.see.common.exception.NoLoginException;
 import com.see.common.message.CancelRequest;
+import com.see.common.message.DisconnectRequest;
 import com.see.common.message.OrderRequest;
 import com.see.common.message.TradeResponse;
 import com.see.common.network.NetworkMessager;
@@ -24,13 +25,8 @@ public class DefaultTradingMessager implements TradingMessager {
 	}
 
 	@Override
-	public void disconnect() throws IOException {
-		sendDisconnect();
-		messager.disconnect();
-	}
-
-	private void sendDisconnect() throws IOException {
-		messager.write("disconnect");
+	public void disconnect(DisconnectRequest request) throws IOException {
+		messager.write(request);
 	}
 
 	@Override

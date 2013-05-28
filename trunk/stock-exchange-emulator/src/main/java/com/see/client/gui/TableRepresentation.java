@@ -22,8 +22,8 @@ public class TableRepresentation {
 	public void drawTradeOrder(UUID orderID, OrderRequest order) {
 		try {
 			int index = getOrderIndex(orderID);
-			int tradedShares = (int) dataTable.getValueAt(index, 4);
-			float dealPrice = (float) dataTable.getValueAt(index, 5);
+			int tradedShares = getTradedShares(index);
+			float dealPrice = getDealPrice(index);
 			dataTable.removeRow(index);
 			Status status;
 			if (tradedShares == order.getQuantity())
@@ -51,17 +51,17 @@ public class TableRepresentation {
 
 		try {
 			int index = getOrderIndex(response.getOrderID());
-			symbol = (String) dataTable.getValueAt(index, 1);
-			quantity = (int) dataTable.getValueAt(index, 3);
-			String priceString = (String) dataTable.getValueAt(index, 7);
-			tradeOperation = (OrderType) dataTable.getValueAt(index, 6);
+			symbol = getStockName(index);
+			quantity = getQuantity(index);
+			String priceString = getPriceString(index);
+			tradeOperation = getType(index);
 			if (priceString.equals("MARKET"))
 				price = (tradeOperation == OrderType.BUY) ? Float.POSITIVE_INFINITY
 						: Float.NEGATIVE_INFINITY;
 			else
 				price = Float.parseFloat(priceString);
-			tradedShares = (int) dataTable.getValueAt(index, 4);
-			dealPrice = (float) dataTable.getValueAt(index, 5);
+			tradedShares = getTradedShares(index);
+			dealPrice = getDealPrice(index);
 			if (dealPrice == Float.NaN)
 				dealPrice = 0;
 			dealPrice = (response.getPrice() * response.getQuantity() + dealPrice
@@ -122,6 +122,30 @@ public class TableRepresentation {
 
 	public String getStatus(int index) {
 		return dataTable.getValueAt(index, 2).toString();
+	}
+
+	public int getQuantity(int index) {
+		return (int) dataTable.getValueAt(index, 3);
+	}
+
+	public int getTradedShares(int index) {
+		return (int) dataTable.getValueAt(index, 4);
+	}
+
+	public float getDealPrice(int index) {
+		return (float) dataTable.getValueAt(index, 5);
+	}
+
+	public OrderType getType(int index) {
+		return (OrderType) dataTable.getValueAt(index, 6);
+	}
+
+	public String getPriceString(int index) {
+		return (String) dataTable.getValueAt(index, 7);
+	}
+
+	public Date getDate(int index) {
+		return (Date) dataTable.getValueAt(index, 8);
 	}
 
 	public void clearTable() {

@@ -4,7 +4,11 @@ import com.see.common.domain.Order;
 
 public class LastPriceMatcher implements MatchingEngine {
 
-	private PriceComparator priceComparator = new PriceComparator();
+	public LastPriceMatcher(PriceComparator priceComparator) {
+		this.priceComparator = priceComparator;
+	}
+
+	private final PriceComparator priceComparator;
 
 	@Override
 	public float getPrice(Order o1, Order o2, float lastDealPrice) {

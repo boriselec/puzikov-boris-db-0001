@@ -16,11 +16,11 @@ public class OrderBookService implements TradingService {
 
 	public OrderBookService(OrderBook orderBook) {
 		this.orderBook = orderBook;
-		observers = new HashMap<String, TradeListener>();
+		listeners = new HashMap<String, TradeListener>();
 	}
 
 	private OrderBook orderBook;
-	private Map<String, TradeListener> observers;
+	private Map<String, TradeListener> listeners;
 
 	@Override
 	public void placeOrder(Order order) {
@@ -40,20 +40,20 @@ public class OrderBookService implements TradingService {
 	}
 
 	@Override
-	public void addObserver(TradeListener observer) {
-		observers.put(observer.getClientName(), observer);
+	public void addListener(TradeListener listener) {
+		listeners.put(listener.getClientName(), listener);
 	}
 
 	@Override
-	public void removeObserver(TradeListener observer) {
-		observers.remove(observer);
+	public void removeListener(TradeListener listener) {
+		listeners.remove(listener);
 	}
 
 	private void notifyObservers(Trade trade) {
 		String bidClient = trade.getBid().getClientName();
 		String offerClient = trade.getOffer().getClientName();
-		observers.get(bidClient).onTrade(trade);
-		observers.get(offerClient).onTrade(trade);
+		listeners.get(bidClient).onTrade(trade);
+		listeners.get(offerClient).onTrade(trade);
 	}
 
 }

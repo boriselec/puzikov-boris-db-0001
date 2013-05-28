@@ -34,16 +34,16 @@ public class ServiceContainer implements TradingService {
 	}
 
 	@Override
-	public void addObserver(TradeListener observer) {
+	public void addListener(TradeListener listener) {
 
 		for (String ticker : tickerSymbols)
-			this.orderBookContainer.get(ticker).addObserver(observer);
+			this.orderBookContainer.get(ticker).addListener(listener);
 	}
 
 	@Override
-	public void removeObserver(TradeListener observer) {
+	public void removeListener(TradeListener listener) {
 		for (String ticker : tickerSymbols)
-			this.orderBookContainer.get(ticker).removeObserver(observer);
+			this.orderBookContainer.get(ticker).removeListener(listener);
 	}
 
 	public String[] getTickerSymbols() {

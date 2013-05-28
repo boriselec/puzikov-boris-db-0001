@@ -12,8 +12,8 @@ public interface TradingService {
 
 	public void cancelOrder(UUID orderID) throws CancelOrderException;
 
-	public void addObserver(TradeListener observer);
+	public void addListener(TradeListener listener);
 
-	public void removeObserver(TradeListener observer);
+	public void removeListener(TradeListener listener);
 
 }

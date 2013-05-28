@@ -7,9 +7,7 @@ import java.util.UUID;
 
 import junit.framework.TestCase;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.see.common.domain.Order;
 import com.see.common.domain.OrderType;
@@ -28,9 +26,6 @@ public class OrderBookTest extends TestCase {
 				price, sharesCount, new Date());
 		return resultOrder;
 	}
-
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testShouldFullyFillWhenAddedFullyMathingOrders() {
@@ -164,16 +159,17 @@ public class OrderBookTest extends TestCase {
 
 		orderBook.cancelOrder(order.getOrderID());
 
-		// should throw
+		// check
 		try {
 			orderBook.cancelOrder(order.getOrderID());
 			fail();
 		} catch (CancelOrderException e) {
+			// ok
 		}
 
 	}
 
-	@Test
+	@Test(expected = CancelOrderException.class)
 	public void testShouldThrowExceptionWhenCanclingBadNotExistingOrder() {
 
 		try {
