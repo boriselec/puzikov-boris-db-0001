@@ -24,6 +24,8 @@ public class ObjectStreamMessager implements NetworkMessager {
 	@Override
 	public void write(Object message) throws IOException {
 		out.writeObject(message);
+		out.reset();
+		// in.reset();
 	}
 
 	@Override

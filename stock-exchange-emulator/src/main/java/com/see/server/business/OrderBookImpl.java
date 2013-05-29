@@ -73,11 +73,20 @@ public class OrderBookImpl implements OrderBook {
 	}
 
 	private void removeOrder(Order order) {
-		if (order.getType() == OrderType.BUY)
-			bidsOrderBook.remove(order);
-		else
-			offersOrderBook.remove(order);
+		removeBest(order.getType());
+		// if (order.getType() == OrderType.BUY)
+		// System.out.println(bidsOrderBook.remove(order));
 
+		// else
+		// System.out.println(offersOrderBook.remove(order));
+	}
+
+	private void removeBest(OrderType type) {
+		Set<Order> book = (type == OrderType.BUY) ? (bidsOrderBook)
+				: (offersOrderBook);
+		Iterator<Order> iterator = book.iterator();
+		iterator.next();
+		iterator.remove();
 	}
 
 	private Order getBest(Set<Order> orderBook) {

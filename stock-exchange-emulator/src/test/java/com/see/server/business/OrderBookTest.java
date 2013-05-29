@@ -169,13 +169,15 @@ public class OrderBookTest extends TestCase {
 
 	}
 
-	@Test(expected = CancelOrderException.class)
+	@Test
+	// (expected = CancelOrderException.class)
 	public void testShouldThrowExceptionWhenCanclingBadNotExistingOrder() {
 
 		try {
 			orderBook.cancelOrder(UUID.randomUUID());
 			fail();
 		} catch (CancelOrderException e) {
+			System.out.println(e.toString());
 		}
 
 	}

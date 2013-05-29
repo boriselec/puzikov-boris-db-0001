@@ -49,6 +49,7 @@ public class ClientSession implements Runnable {
 	public void run() {
 
 		try {
+			log.info(String.format("Client connected: client=%s", clientName));
 			sendDelayedResponses();
 
 			createListener();
